@@ -1,0 +1,17 @@
+{
+  "name": "B612-Vault",
+  "short_name": "B612-Vault",
+  "description": "Coleção pessoal de relógios, builds e wishlist com sincronização Supabase.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f1012",
+  "theme_color": "#0f1012",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

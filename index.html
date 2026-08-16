@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1012" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="B612-Vault" />
+  <title>B612-Vault</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon-512.png" type="image/png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <section id="homeView" class="view active">
+      <header class="home-hero">
+        <div class="hero-copy">
+          <div class="eyebrow">PRIVATE COLLECTION</div>
+          <div class="brand-lockup">
+            <img src="app-symbol.jpg" alt="B612 Vault" class="hero-symbol" />
+            <div>
+              <h1>B612-Vault</h1>
+              <p class="hero-sub">O teu cockpit privado para coleção, builds e wishlist.</p>
+            </div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button id="homeCloudBtn" class="round-btn" aria-label="Nuvem"></button>
+          <button id="homeAddBtn" class="round-btn primary" aria-label="Adicionar"></button>
+        </div>
+      </header>
+
+      <main class="home-grid">
+        <button class="entry-card" data-route-target="collection">
+          <div class="entry-icon" id="entryCollectionIcon"></div>
+          <div class="entry-text">
+            <h2>Coleção</h2>
+            <p>Os relógios que já fazem parte da tua rotação.</p>
+          </div>
+          <span class="entry-meta" id="countCollection">0 relógios</span>
+        </button>
+
+        <button class="entry-card" data-route-target="build">
+          <div class="entry-icon" id="entryBuildIcon"></div>
+          <div class="entry-text">
+            <h2>Build</h2>
+            <p>Projetos montados, em curso ou a marinar.</p>
+          </div>
+          <span class="entry-meta" id="countBuild">0 builds</span>
+        </button>
+
+        <button class="entry-card" data-route-target="wishlist">
+          <div class="entry-icon" id="entryWishlistIcon"></div>
+          <div class="entry-text">
+            <h2>Wishlist</h2>
+            <p>Relógios e marcas que queres acompanhar.</p>
+          </div>
+          <span class="entry-meta" id="countWishlist">0 itens</span>
+        </button>
+      </main>
+
+      <section class="quick-backup">
+        <div>
+          <div class="eyebrow">UTILITÁRIOS</div>
+          <h3>Backup local</h3>
+          <p class="hero-sub">Exporta ou importa a coleção sem teres de andar à caça da página certa.</p>
+        </div>
+        <div class="quick-backup-actions">
+          <button id="homeExportBtn" class="ghost-btn">Exportar backup</button>
+          <label class="ghost-btn file-btn">Importar backup
+            <input id="homeImportInput" type="file" accept="application/json" hidden />
+          </label>
+        </div>
+      </section>
+
+    </section>
+
+    <section id="listView" class="view hidden">
+      <header class="sub-header">
+        <div class="sub-left">
+          <button id="goHomeBtn" class="round-btn" aria-label="Home"></button>
+          <div>
+            <div class="eyebrow" id="listEyebrow">CATEGORIA</div>
+            <h2 id="listTitle">Coleção</h2>
+            <p id="listIntro" class="sub-intro"></p>
+          </div>
+        </div>
+        <div class="sub-actions">
+          <button id="listCloudBtn" class="round-btn" aria-label="Nuvem"></button>
+          <button id="listAddBtn" class="round-btn primary" aria-label="Adicionar"></button>
+        </div>
+      </header>
+
+      <section class="category-info">
+        <div class="category-badge" id="categoryBadge">0</div>
+        <div class="category-copy" id="categoryCopy"></div>
+      </section>
+
+      <section class="toolbar">
+        <input id="searchInput" class="search" type="search" placeholder="Pesquisar marca, modelo, movimento..." />
+        <select id="sortSelect" class="select">
+          <option value="updated">Recentes</option>
+          <option value="name">Nome A–Z</option>
+          <option value="priceHigh">Custo ↓</option>
+          <option value="priceLow">Custo ↑</option>
+        </select>
+      </section>
+
+      <main id="watchGrid" class="watch-grid"></main>
+      <div id="emptyState" class="empty-state hidden"></div>
+    </section>
+
+    <section id="cloudView" class="view hidden">
+      <header class="sub-header">
+        <div class="sub-left">
+          <button id="cloudHomeBtn" class="round-btn" aria-label="Home"></button>
+          <div>
+            <div class="eyebrow">B612 CLOUD</div>
+            <h2>Nuvem & sincronização</h2>
+            <p class="sub-intro">Confirma o estado do login, sincroniza os dados e gere a sessão.</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="cloud-layout">
+        <section class="cloud-card">
+          <h3>Estado da sessão</h3>
+          <div id="cloudStatusBadge" class="pill warn">Ainda neste dispositivo</div>
+          <div class="cloud-user-row">
+            <span class="label">Utilizador atual</span>
+            <strong id="cloudUserValue">Sessão anónima</strong>
+          </div>
+          <div class="cloud-user-row">
+            <span class="label">Estado</span>
+            <span id="cloudStateText">Pronto para sincronizar localmente.</span>
+          </div>
+          <div class="cloud-actions-row">
+            <button id="syncNowBtn" class="primary-btn">Sincronizar</button>
+            <button id="logoutBtn" class="ghost-btn">Log off</button>
+          </div>
+        </section>
+
+        <section class="cloud-card" id="connectCard">
+          <h3>Ligar conta</h3>
+          <p class="cloud-copy">Se ainda estás em modo local/anónimo, podes associar a coleção atual ao teu email ou entrar com Magic Link.</p>
+          <label>Email para associar
+            <input id="claimEmail" type="email" inputmode="email" autocomplete="email" placeholder="nome@email.com" />
+          </label>
+          <button id="claimEmailBtn" class="primary-btn full-btn">Associar esta coleção ao email</button>
+          <div class="divider"><span>ou</span></div>
+          <label>Email para login
+            <input id="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="nome@email.com" />
+          </label>
+          <button id="loginEmailBtn" class="ghost-btn full-btn">Entrar com Magic Link</button>
+        </section>
+
+        <section class="cloud-card">
+          <h3>Backup local</h3>
+          <p class="cloud-copy">Mantém um backup manual da coleção. Nunca é sexy, mas salva o dia quando tudo decide brincar contigo.</p>
+          <div class="cloud-actions-row">
+            <button id="exportBtn" class="ghost-btn">Exportar backup</button>
+            <label class="ghost-btn file-btn">Importar backup
+              <input id="importInput" type="file" accept="application/json" hidden />
+            </label>
+          </div>
+          <div id="cloudMessage" class="cloud-message"></div>
+        </section>
+      </main>
+    </section>
+
+    <footer class="footer-bar">
+      <div id="nowInfo">--</div>
+      <div id="versionInfo">B612-Vault v5.1 · atualizado em 16/08/2026 · 16:58</div>
+    </footer>
+  </div>
+
+  <dialog id="watchDialog" class="dialog">
+    <form method="dialog" id="watchForm" class="form">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">WATCH PROFILE</div>
+          <h2 id="dialogTitle">Novo registo</h2>
+        </div>
+        <button type="button" id="closeDialog" class="round-btn small" aria-label="Fechar"></button>
+      </div>
+
+      <input type="hidden" id="watchId" />
+      <input type="hidden" id="imageStoragePath" />
+
+      <div class="form-grid">
+        <label>Categoria
+          <select id="status" required>
+            <option value="collection">Coleção</option>
+            <option value="build">Build</option>
+            <option value="wishlist">Wishlist</option>
+          </select>
+        </label>
+
+        <label id="wishlistTypeWrap" class="hidden">Tipo de wishlist
+          <select id="wishlistType">
+            <option value="watch">Relógio específico</option>
+            <option value="brand">Apenas marca</option>
+          </select>
+        </label>
+
+        <label>Marca
+          <input id="brand" placeholder="Ex.: Tudor, Seiko, Custom" />
+        </label>
+
+        <label class="span-2">Modelo / Nome
+          <input id="model" placeholder="Ex.: Black Bay 58" />
+        </label>
+
+        <label>Referência
+          <input id="reference" placeholder="Ex.: M79030N" />
+        </label>
+
+        <label>Movimento
+          <input id="movement" placeholder="Ex.: VH31 / NH35 / ETA 2824" />
+        </label>
+
+        <label>Diâmetro (mm)
+          <input id="diameter" type="number" step="0.1" placeholder="39" />
+        </label>
+
+        <label>Ano
+          <input id="year" type="number" placeholder="2026" />
+        </label>
+
+        <label id="purchaseLabel">Custo aquisição (€)
+          <input id="purchasePrice" type="number" step="0.01" />
+        </label>
+
+        <div class="span-2 photo-field">
+          <label>Fotografia</label>
+          <div class="photo-upload-card">
+            <img id="photoPreview" class="photo-preview hidden" alt="Pré-visualização da fotografia">
+            <div class="photo-upload-actions">
+              <label class="primary-btn photo-picker">
+                Adicionar foto
+                <input id="photoInput" type="file" accept="image/*" hidden>
+              </label>
+              <button type="button" id="removePhotoBtn" class="ghost-btn hidden">Remover</button>
+            </div>
+            <div id="photoStatus" class="photo-status">Escolhe uma fotografia da biblioteca ou câmara.</div>
+          </div>
+        </div>
+
+        <label class="span-2">Link
+          <input id="link" placeholder="Loja, anúncio ou referência" />
+        </label>
+
+        <label>Caixa
+          <input id="casePart" placeholder="Ex.: Explorer 39 mm 904L" />
+        </label>
+
+        <label>Dial
+          <input id="dialPart" placeholder="Ex.: preto, lume BGW9" />
+        </label>
+
+        <label>Ponteiros
+          <input id="handsPart" placeholder="Ex.: Mercedes VH31" />
+        </label>
+
+        <label>Bracelete / Strap
+          <input id="strapPart" placeholder="Ex.: FKM vermelho" />
+        </label>
+
+        <label class="span-2">Notas
+          <textarea id="notes" rows="4" placeholder="História, manutenção, peças, ideias futuras..."></textarea>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" id="deleteBtn" class="danger-btn hidden">Eliminar</button>
+        <div class="actions-right">
+          <button type="button" id="cancelBtn" class="ghost-btn">Cancelar</button>
+          <button type="submit" class="primary-btn">Guardar</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="cardTemplate">
+    <article class="watch-card">
+      <button class="card-hit" aria-label="Abrir registo"></button>
+      <div class="watch-image-wrap">
+        <img class="watch-image" alt="" />
+        <div class="status-pill"></div>
+      </div>
+      <div class="watch-body">
+        <div class="card-topline">
+          <div>
+            <div class="brand"></div>
+            <h3 class="model"></h3>
+          </div>
+          <span class="mini-chevron">›</span>
+        </div>
+        <div class="specs"></div>
+        <div class="price-row">
+          <span class="price-label"></span>
+          <strong class="price"></strong>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
