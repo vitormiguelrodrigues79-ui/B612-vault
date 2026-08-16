@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111214" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="B612-Vault" />
+  <title>B612-Vault</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">PRIVATE COLLECTION</div>
+        <div class="brand-title"><img src="app-symbol.jpg" class="app-symbol" alt="Símbolo B612-Vault"><h1>B612-Vault</h1></div>
+      </div>
+      <div class="top-actions">
+        <button class="account-btn" id="accountBtn" aria-label="Sincronização">☁︎</button>
+        <button class="icon-btn" id="addBtn" aria-label="Adicionar relógio">+</button>
+      </div>
+    </header>
+
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <nav class="tabs" aria-label="Secções">
+      <button class="tab active" data-view="collection">Coleção</button>
+      <button class="tab" data-view="wishlist">Wishlist</button>
+      <button class="tab" data-view="build">Builds</button>
+    </nav>
+
+    <section class="toolbar">
+      <input id="searchInput" class="search" type="search" placeholder="Pesquisar marca, modelo, movimento..." />
+      <select id="sortSelect" class="select">
+        <option value="updated">Recentes</option>
+        <option value="name">Nome A–Z</option>
+        <option value="priceHigh">Valor ↓</option>
+        <option value="priceLow">Valor ↑</option>
+      </select>
+    </section>
+
+    <main id="watchGrid" class="watch-grid"></main>
+
+    <footer class="footer">
+      <button id="exportBtn" class="ghost-btn">Exportar backup</button>
+      <label class="ghost-btn file-btn">Importar backup
+        <input id="importInput" type="file" accept="application/json" hidden />
+      </label>
+    </footer>
+  </div>
+
+  <dialog id="watchDialog" class="dialog">
+    <form method="dialog" id="watchForm" class="form">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">WATCH PROFILE</div>
+          <h2 id="dialogTitle">Novo relógio</h2>
+        </div>
+        <button type="button" id="closeDialog" class="icon-btn small">×</button>
+      </div>
+
+      <input type="hidden" id="watchId" />
+
+      <div class="form-grid">
+        <label>Estado
+          <select id="status" required>
+            <option value="collection">Coleção</option>
+            <option value="wishlist">Wishlist</option>
+            <option value="build">Build</option>
+          </select>
+        </label>
+
+        <label id="wishlistTypeWrap" class="hidden">Tipo de wishlist
+          <select id="wishlistType">
+            <option value="watch">Relógio específico</option>
+            <option value="brand">Apenas marca</option>
+          </select>
+        </label>
+
+        <label>Marca
+          <input id="brand" placeholder="Ex.: Tudor, Seiko, Custom" />
+        </label>
+
+        <label class="span-2">Modelo / Nome
+          <input id="model" placeholder="Ex.: Fox Kiko Explorer 39" />
+        </label>
+
+        <label>Referência
+          <input id="reference" placeholder="Ex.: M79030N" />
+        </label>
+
+        <label>Movimento
+          <input id="movement" placeholder="Ex.: VH31 / NH35 / ETA 2824" />
+        </label>
+
+        <label>Diâmetro (mm)
+          <input id="diameter" type="number" step="0.1" placeholder="39" />
+        </label>
+
+        <label>Ano
+          <input id="year" type="number" placeholder="2026" />
+        </label>
+
+        <label>Preço de compra (€)
+          <input id="purchasePrice" type="number" step="0.01" />
+        </label>
+
+        <label>Valor atual / alvo (€)
+          <input id="currentValue" type="number" step="0.01" />
+        </label>
+
+        <div class="span-2 photo-field">
+          <label>Fotografia</label>
+          <div class="photo-upload-card">
+            <img id="photoPreview" class="photo-preview hidden" alt="Pré-visualização da fotografia">
+            <div class="photo-upload-actions">
+              <label class="primary-btn photo-picker">
+                Adicionar foto
+                <input id="photoInput" type="file" accept="image/*" hidden>
+              </label>
+              <button type="button" id="removePhotoBtn" class="ghost-btn hidden">Remover</button>
+            </div>
+            <div id="photoStatus" class="photo-status">Escolhe uma fotografia da biblioteca ou câmara.</div>
+          </div>
+          <input id="imageStoragePath" type="hidden">
+        </div>
+
+        <label class="span-2">Link
+          <input id="link" placeholder="Loja, anúncio ou referência" />
+        </label>
+
+        <label>Caixa
+          <input id="casePart" placeholder="Ex.: Explorer 39 mm 904L" />
+        </label>
+
+        <label>Dial
+          <input id="dialPart" placeholder="Ex.: preto, lume BGW9" />
+        </label>
+
+        <label>Ponteiros
+          <input id="handsPart" placeholder="Ex.: Mercedes VH31" />
+        </label>
+
+        <label>Bracelete / Strap
+          <input id="strapPart" placeholder="Ex.: FKM vermelho" />
+        </label>
+
+        <label class="span-2">Notas
+          <textarea id="notes" rows="4" placeholder="História, manutenção, peças, ideias futuras..."></textarea>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" id="deleteBtn" class="danger-btn hidden">Eliminar</button>
+        <div class="actions-right">
+          <button type="button" id="cancelBtn" class="ghost-btn">Cancelar</button>
+          <button type="submit" class="primary-btn">Guardar</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+
+  <dialog id="accountDialog" class="dialog account-dialog">
+    <div class="form account-panel">
+      <div class="dialog-head">
+        <div>
+          <div class="eyebrow">B612 CLOUD</div>
+          <h2>Sincronização</h2>
+        </div>
+        <button type="button" id="closeAccountDialog" class="icon-btn small">×</button>
+      </div>
+
+      <div id="accountStatus" class="account-status"></div>
+
+      <div id="anonAccountActions">
+        <p class="account-copy">Neste iPhone podes associar a coleção atual ao teu email. Mantém o mesmo utilizador e preserva as fotografias já guardadas.</p>
+        <label>Email
+          <input id="claimEmail" type="email" inputmode="email" autocomplete="email" placeholder="nome@email.com">
+        </label>
+        <button type="button" id="claimEmailBtn" class="primary-btn full-btn">Associar esta coleção ao email</button>
+
+        <div class="account-divider"><span>ou</span></div>
+
+        <p class="account-copy">Num computador ou noutro dispositivo, usa o mesmo email para entrar na coleção existente.</p>
+        <label>Email
+          <input id="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="nome@email.com">
+        </label>
+        <button type="button" id="loginEmailBtn" class="ghost-btn full-btn">Entrar com Magic Link</button>
+      </div>
+
+      <div id="permanentAccountActions" class="hidden">
+        <div class="cloud-ok">✓ Coleção sincronizada</div>
+        <p id="signedInEmail" class="account-copy"></p>
+        <button type="button" id="syncNowBtn" class="primary-btn full-btn">Sincronizar agora</button>
+      </div>
+
+      <div id="accountMessage" class="photo-status"></div>
+    </div>
+  </dialog>
+
+  <template id="cardTemplate">
+    <article class="watch-card">
+      <button class="card-hit" aria-label="Abrir relógio"></button>
+      <div class="watch-image-wrap">
+        <img class="watch-image" alt="" />
+        <div class="status-pill"></div>
+      </div>
+      <div class="watch-body">
+        <div class="card-topline">
+          <div>
+            <div class="brand"></div>
+            <h3 class="model"></h3>
+          </div>
+          <span class="mini-chevron">›</span>
+        </div>
+        <div class="specs"></div>
+        <div class="price-row">
+          <span class="price-label"></span>
+          <strong class="price"></strong>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
