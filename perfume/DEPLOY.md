@@ -1,0 +1,1 @@
+Depois de integrar esta branch em `main`, a app fica disponível em `/perfume/` na mesma publicação estática usada pelo B612-Vault. O login Google deve ter esse URL autorizado no Supabase Auth Redirect URLs.
