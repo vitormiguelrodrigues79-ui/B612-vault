@@ -4,16 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#11110f" />
-  <title>B612 Scent Vault</title>
+  <title>Oud d’Haenir</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .similarity-card{margin-top:16px;padding:14px;border:1px solid var(--line,#d9d6cc);border-radius:14px;background:color-mix(in srgb,var(--panel,#fff) 88%,#b89a5d 12%);display:grid;gap:8px}
+    .similarity-card div{display:grid;gap:2px}.similarity-card small{font-size:10px;letter-spacing:.12em;opacity:.65}.similarity-card strong{font-size:15px}.similarity-card span,.similarity-card p{font-size:12px;opacity:.75;margin:0;line-height:1.45}.similarity-card a{font-size:12px;font-weight:700;color:inherit;text-decoration:none}.similarity-empty{opacity:.7}
+    .app-footer{max-width:1280px;margin:34px auto 0;padding:18px 22px calc(22px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line,#d9d6cc);font-size:11px;letter-spacing:.05em;opacity:.65}.app-footer strong{font-weight:750}
+  </style>
 </head>
 <body>
   <header class="topbar">
     <div>
-      <div class="eyebrow">B612 · PRIVATE SCENT LIBRARY</div>
-      <h1>Scent Vault</h1>
+      <div class="eyebrow">PRIVATE SCENT LIBRARY</div>
+      <h1>Oud d’Haenir</h1>
     </div>
     <div class="top-actions">
       <button id="syncBtn" class="icon-btn" title="Sincronizar">↻</button>
@@ -110,6 +115,8 @@
     <button id="logoutBtn" class="wide">Sair</button>
   </aside>
 
+  <footer class="app-footer"><span><strong>Oud d’Haenir</strong> · perfume wardrobe</span><span>v1.1 · última atualização 03/09/2026 · 20:13</span></footer>
   <script type="module" src="app.js"></script>
+  <script type="module" src="inspiration.js"></script>
 </body>
 </html>
