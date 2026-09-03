@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#11110f" />
+  <title>B612 Scent Vault</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">B612 · PRIVATE SCENT LIBRARY</div>
+      <h1>Scent Vault</h1>
+    </div>
+    <div class="top-actions">
+      <button id="syncBtn" class="icon-btn" title="Sincronizar">↻</button>
+      <button id="themeBtn" class="icon-btn" title="Tema">◐</button>
+      <button id="addBtn" class="primary">+ Perfume</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <span class="hero-kicker">A tua rotação, sem conversa fiada.</span>
+        <h2>Perfumes, decants, wishlist e avaliações num só sítio.</h2>
+        <p>Filtra por estação e momento do dia, regista evolução na pele e decide quais merecem frasco inteiro.</p>
+      </div>
+      <div class="hero-stats">
+        <div><strong id="countCollection">0</strong><span>Frascos</span></div>
+        <div><strong id="countDecant">0</strong><span>Decants</span></div>
+        <div><strong id="countWishlist">0</strong><span>Wishlist</span></div>
+        <div><strong id="avgScore">—</strong><span>Média</span></div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-status="all">Tudo</button>
+        <button class="tab" data-status="collection">Tenho</button>
+        <button class="tab" data-status="decant">Decants</button>
+        <button class="tab" data-status="wishlist">Quero ter</button>
+      </div>
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="Pesquisar perfume, marca, perfil…" />
+        <select id="seasonFilter"><option value="">Todas as estações</option><option>Primavera</option><option>Verão</option><option>Outono</option><option>Inverno</option></select>
+        <select id="timeFilter"><option value="">Qualquer altura</option><option>Dia</option><option>Noite</option></select>
+        <select id="sortSelect"><option value="updated">Mais recentes</option><option value="score">Melhor nota</option><option value="name">Nome A-Z</option></select>
+      </div>
+    </section>
+
+    <section id="grid" class="grid"></section>
+    <div id="empty" class="empty hidden">Ainda não há nada aqui. É o momento perfeito para alimentar o vício com método.</div>
+  </main>
+
+  <button id="floatingAdd" class="floating">+</button>
+
+  <dialog id="perfumeDialog">
+    <form id="perfumeForm" method="dialog">
+      <input type="hidden" id="perfumeId" />
+      <div class="dialog-head"><div><div class="eyebrow">PERFUME CARD</div><h3 id="dialogTitle">Novo perfume</h3></div><button type="button" id="closeDialog" class="icon-btn">×</button></div>
+      <div class="form-grid">
+        <label>Estado<select id="status"><option value="collection">Tenho</option><option value="decant">Decant</option><option value="wishlist">Quero ter</option></select></label>
+        <label>Marca<input id="brand" /></label>
+        <label class="span2">Nome<input id="name" required /></label>
+        <label>Concentração<input id="concentration" placeholder="EDP, EDT…" /></label>
+        <label>Tamanho / ml<input id="sizeMl" type="number" step="0.1" /></label>
+        <label class="span2">Perfil aromático<input id="profile" placeholder="cítrico · chá · gengibre · amadeirado" /></label>
+        <fieldset class="span2"><legend>Estações</legend><div class="check-row"><label><input type="checkbox" name="season" value="Primavera">Primavera</label><label><input type="checkbox" name="season" value="Verão">Verão</label><label><input type="checkbox" name="season" value="Outono">Outono</label><label><input type="checkbox" name="season" value="Inverno">Inverno</label></div></fieldset>
+        <fieldset class="span2"><legend>Altura do dia</legend><div class="check-row"><label><input type="checkbox" name="time" value="Dia">Dia</label><label><input type="checkbox" name="time" value="Noite">Noite</label></div></fieldset>
+        <label class="span2">Notas de topo<textarea id="topNotes" rows="2"></textarea></label>
+        <label class="span2">Notas de coração<textarea id="heartNotes" rows="2"></textarea></label>
+        <label class="span2">Notas de base<textarea id="baseNotes" rows="2"></textarea></label>
+      </div>
+
+      <div class="section-title">Teste na pele</div>
+      <div class="form-grid">
+        <label class="span2">Abertura<textarea id="openingNotes" rows="2"></textarea></label>
+        <label class="span2">30 minutos<textarea id="evolution30m" rows="2"></textarea></label>
+        <label class="span2">2 horas<textarea id="evolution2h" rows="2"></textarea></label>
+        <label class="span2">6 horas<textarea id="evolution6h" rows="2"></textarea></label>
+      </div>
+
+      <div class="section-title">Avaliação</div>
+      <div class="rating-grid">
+        <label>Longevidade<input id="longevityScore" type="number" min="0" max="10" step="0.5"></label>
+        <label>Projeção<input id="projectionScore" type="number" min="0" max="10" step="0.5"></label>
+        <label>Elegância<input id="eleganceScore" type="number" min="0" max="10" step="0.5"></label>
+        <label>Originalidade<input id="originalityScore" type="number" min="0" max="10" step="0.5"></label>
+        <label>É a minha cara<input id="fitScore" type="number" min="0" max="10" step="0.5"></label>
+        <label>Nota final<input id="overallScore" type="number" min="0" max="10" step="0.5"></label>
+      </div>
+      <div class="form-grid">
+        <label>Preço €<input id="purchasePrice" type="number" step="0.01"></label>
+        <label>Favorito<select id="favorite"><option value="false">Não</option><option value="true">Sim</option></select></label>
+        <label class="span2">Link / loja<input id="sourceUrl" type="url" /></label>
+        <label class="span2">Notas livres<textarea id="notes" rows="4"></textarea></label>
+      </div>
+      <div class="dialog-actions"><button type="button" id="deleteBtn" class="danger hidden">Apagar</button><span></span><button type="button" id="cancelBtn">Cancelar</button><button type="submit" class="primary">Guardar</button></div>
+    </form>
+  </dialog>
+
+  <aside id="cloudPanel" class="cloud-panel hidden">
+    <button id="closeCloud" class="icon-btn">×</button>
+    <div class="eyebrow">CLOUD</div><h3>Sincronização</h3><p id="cloudStatus">A verificar…</p>
+    <button id="googleLoginBtn" class="primary wide">Entrar com Google</button>
+    <button id="logoutBtn" class="wide">Sair</button>
+  </aside>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

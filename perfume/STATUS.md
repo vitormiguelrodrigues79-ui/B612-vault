@@ -1,0 +1,1 @@
+MVP pronto para revisão e integração em main.
