@@ -46,6 +46,18 @@ function enhanceDialog(){
   host.innerHTML = block(findReference(nameInput.value));
 }
 
+function applyAppBranding(){
+  document.title = "Oud d’Haenir";
+  let favicon = document.querySelector('link[rel="icon"]');
+  if(!favicon){ favicon = document.createElement("link"); favicon.rel = "icon"; document.head.appendChild(favicon); }
+  favicon.type = "image/svg+xml";
+  favicon.href = "icon.svg";
+  const touch = document.querySelector('link[rel="apple-touch-icon"]');
+  if(touch) touch.href = "icon.svg";
+  const footerSpans = document.querySelectorAll(".app-footer span");
+  if(footerSpans[1]) footerSpans[1].textContent = "v1.2 · última atualização 03/09/2026 · 20:18";
+}
+
 const observer = new MutationObserver(() => enhanceCards());
 const grid = document.getElementById("grid");
 if(grid) observer.observe(grid, { childList:true, subtree:true });
@@ -54,4 +66,5 @@ document.addEventListener("click", event => {
   if(event.target.closest(".edit") || event.target.closest("#addBtn") || event.target.closest("#floatingAdd")) setTimeout(enhanceDialog, 40);
 });
 document.getElementById("name")?.addEventListener("input", enhanceDialog);
+applyAppBranding();
 setTimeout(() => { enhanceCards(); enhanceDialog(); }, 100);
