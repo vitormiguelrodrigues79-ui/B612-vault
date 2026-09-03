@@ -55,7 +55,7 @@ function applyAppBranding(){
   const touch = document.querySelector('link[rel="apple-touch-icon"]');
   if(touch) touch.href = "icon.svg";
   const footerSpans = document.querySelectorAll(".app-footer span");
-  if(footerSpans[1]) footerSpans[1].textContent = "v1.2 · última atualização 03/09/2026 · 20:18";
+  if(footerSpans[1]) footerSpans[1].textContent = "v1.3 · última atualização 03/09/2026 · 21:18";
 }
 
 const observer = new MutationObserver(() => enhanceCards());
