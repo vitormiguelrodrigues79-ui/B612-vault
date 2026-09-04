@@ -1,0 +1,101 @@
+const VIEW_KEY = "oud_haenir_view_mode";
+
+const PERFUME_PHOTOS = {
+  "club de nuit intense man": "https://cdn.ourshopee.com/ourshopee-img/ourshopee_products/426045010Club.jpg",
+  "marwa": "https://media.pji.nu/051b8987-4992-4990-a169-c7f95afa2b24.webp",
+  "l’homme": "https://www.scentsangel.com/cdn/shop/files/YVES_SAINT_LAURENT_L_HOMME_EDT.png?v=1747796178",
+  "l'homme": "https://www.scentsangel.com/cdn/shop/files/YVES_SAINT_LAURENT_L_HOMME_EDT.png?v=1747796178",
+  "arctic breeze": "https://csdam.net/data/jpg/0/3465842a/3465842a-1dd1-4a61-b19c-2e0f33d697b3.jpg",
+  "jean lowe immortel": "https://www.justmylook.com/cdn/shop/files/MAAL0001_78e0b056-2efd-467e-923f-74cbae233c3d.png?v=1753717520",
+  "inekas luna": "https://dxbperfume.co.uk/cdn/shop/files/inekasluna2.jpg?v=1730479557&width=2000",
+  "liam grey": "https://arabmusk.eu/cdn/shop/files/liam-grey-lattafa-100-ml-eau-de-parfum-212.webp?v=1720151301",
+  "spectre ghost": "https://rutaparfum.com.ua/image/cache/catalog/photo/french_avenue/26431-french-avenue-spectre-ghost-bottle-1000x1000.jpg",
+  "ramad oriental": "https://balade-orientale.com/cdn/shop/files/Arabiyat_Prestige_-_Ramad_Oriental_Eau_de_parfum_mixte_100ml.png?v=1766439682&width=2048"
+};
+
+const normalizeName = value => (value || "").trim().toLowerCase();
+
+function injectStyles(){
+  if(document.getElementById("catalogViewStyles")) return;
+  const style = document.createElement("style");
+  style.id = "catalogViewStyles";
+  style.textContent = `
+    .view-switcher{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+    .view-switcher .view-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-right:3px}
+    .view-btn{min-height:40px;padding:9px 12px;border-radius:12px;font-size:.78rem;font-weight:750;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+    .view-btn.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+    .perfume-photo{width:82px;height:96px;object-fit:contain;flex:0 0 auto;border-radius:14px;background:#fff;border:1px solid var(--line);padding:7px}
+    .grid.view-details .card-head{align-items:flex-start}.grid.view-details .card-head>div:not(.score){min-width:0}
+    .grid.view-list{grid-template-columns:1fr;gap:10px}.grid.view-list .card{padding:14px 16px}.grid.view-list .card-head{align-items:center;display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:14px}.grid.view-list .perfume-photo{width:72px;height:72px;padding:5px;border-radius:12px}.grid.view-list .profile,.grid.view-list .chips,.grid.view-list .similarity-card,.grid.view-list .card-foot{display:none}.grid.view-list .card h3{font-size:1.25rem;margin:3px 0 5px}.grid.view-list .score{min-width:46px;height:46px;font-size:1rem}.grid.view-list .status{font-size:.68rem}
+    .grid.view-thumbs{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.grid.view-thumbs .card{padding:14px}.grid.view-thumbs .card-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.grid.view-thumbs .perfume-photo{grid-column:1/-1;width:100%;height:170px;padding:12px;border-radius:16px}.grid.view-thumbs .brand{margin-top:4px}.grid.view-thumbs .card h3{font-size:1.16rem;line-height:1.1}.grid.view-thumbs .profile,.grid.view-thumbs .chips,.grid.view-thumbs .similarity-card,.grid.view-thumbs .card-foot{display:none}.grid.view-thumbs .score{min-width:42px;height:42px;font-size:.96rem}
+    @media(max-width:850px){.grid.view-thumbs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:560px){.view-switcher{justify-content:stretch}.view-switcher .view-label{width:100%}.view-btn{flex:1;min-width:0;padding:9px 6px}.grid.view-details .perfume-photo{width:70px;height:84px}.grid.view-list .card-head{grid-template-columns:62px minmax(0,1fr) auto;gap:10px}.grid.view-list .perfume-photo{width:62px;height:62px}.grid.view-thumbs{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid.view-thumbs .perfume-photo{height:138px}.grid.view-thumbs .card{padding:10px}.grid.view-thumbs .card h3{font-size:1.02rem}.grid.view-thumbs .brand{font-size:.62rem}.grid.view-thumbs .status{font-size:.62rem}.grid.view-thumbs .score{min-width:38px;height:38px;font-size:.88rem}}
+  `;
+  document.head.appendChild(style);
+}
+
+function ensureSwitcher(){
+  if(document.getElementById("viewSwitcher")) return;
+  const controls = document.querySelector(".controls");
+  if(!controls) return;
+  const host = document.createElement("div");
+  host.className = "view-switcher";
+  host.id = "viewSwitcher";
+  host.setAttribute("aria-label","Modo de visualização");
+  host.innerHTML = `<span class="view-label">Vista</span><button type="button" class="view-btn" data-view="details">Detalhes</button><button type="button" class="view-btn" data-view="list">Lista</button><button type="button" class="view-btn" data-view="thumbs">Miniaturas</button>`;
+  controls.appendChild(host);
+  host.querySelectorAll(".view-btn").forEach(btn=>btn.addEventListener("click",()=>setView(btn.dataset.view)));
+}
+
+function setView(mode){
+  const allowed = ["details","list","thumbs"];
+  const next = allowed.includes(mode) ? mode : "details";
+  const grid = document.getElementById("grid");
+  if(!grid) return;
+  grid.classList.remove("view-details","view-list","view-thumbs");
+  grid.classList.add(`view-${next}`);
+  document.querySelectorAll(".view-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.view===next));
+  localStorage.setItem(VIEW_KEY,next);
+}
+
+function enhanceCard(card){
+  if(card.querySelector(".perfume-photo")) return;
+  const name = card.querySelector("h3")?.textContent || "";
+  const src = PERFUME_PHOTOS[normalizeName(name)];
+  if(!src) return;
+  const img = document.createElement("img");
+  img.className = "perfume-photo";
+  img.src = src;
+  img.alt = `Frasco de ${name}`;
+  img.loading = "lazy";
+  img.decoding = "async";
+  img.referrerPolicy = "no-referrer";
+  img.addEventListener("error",()=>{img.src="icon.svg";img.classList.add("photo-fallback");},{once:true});
+  const head = card.querySelector(".card-head");
+  if(head) head.insertBefore(img,head.firstChild);
+}
+
+function enhanceCards(){
+  document.querySelectorAll("#grid .card").forEach(enhanceCard);
+}
+
+function updateVersion(){
+  const footerSpans = document.querySelectorAll(".app-footer span");
+  if(footerSpans[1]) footerSpans[1].textContent = "v1.4 · última atualização 04/09/2026 · 09:57";
+}
+
+function initCatalogViews(){
+  injectStyles();
+  ensureSwitcher();
+  updateVersion();
+  const saved = localStorage.getItem(VIEW_KEY) || "details";
+  setView(saved);
+  enhanceCards();
+  const grid = document.getElementById("grid");
+  if(grid){
+    const observer = new MutationObserver(()=>enhanceCards());
+    observer.observe(grid,{childList:true,subtree:true});
+  }
+}
+
+initCatalogViews();
