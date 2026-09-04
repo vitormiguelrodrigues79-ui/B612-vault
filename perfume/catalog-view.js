@@ -1,4 +1,5 @@
 const VIEW_KEY = "oud_haenir_view_mode";
+const STORAGE_KEY = "b612_scent_vault_v1";
 
 const PERFUME_PHOTOS = {
   "club de nuit intense man": "https://cdn.ourshopee.com/ourshopee-img/ourshopee_products/426045010Club.jpg",
@@ -14,6 +15,15 @@ const PERFUME_PHOTOS = {
 };
 
 const normalizeName = value => (value || "").trim().toLowerCase();
+
+function storedImageFor(name){
+  try{
+    const arr=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+    if(!Array.isArray(arr)) return "";
+    const match=arr.find(x=>normalizeName(x.name)===normalizeName(name));
+    return match?.imageUrl||"";
+  }catch{return "";}
+}
 
 function injectStyles(){
   if(document.getElementById("catalogViewStyles")) return;
@@ -59,20 +69,22 @@ function setView(mode){
 }
 
 function enhanceCard(card){
-  if(card.querySelector(".perfume-photo")) return;
   const name = card.querySelector("h3")?.textContent || "";
-  const src = PERFUME_PHOTOS[normalizeName(name)];
+  const src = storedImageFor(name) || PERFUME_PHOTOS[normalizeName(name)];
   if(!src) return;
-  const img = document.createElement("img");
-  img.className = "perfume-photo";
-  img.src = src;
-  img.alt = `Frasco de ${name}`;
-  img.loading = "lazy";
-  img.decoding = "async";
-  img.referrerPolicy = "no-referrer";
-  img.addEventListener("error",()=>{img.src="icon.svg";img.classList.add("photo-fallback");},{once:true});
-  const head = card.querySelector(".card-head");
-  if(head) head.insertBefore(img,head.firstChild);
+  let img=card.querySelector(".perfume-photo");
+  if(!img){
+    img = document.createElement("img");
+    img.className = "perfume-photo";
+    img.alt = `Frasco de ${name}`;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.referrerPolicy = "no-referrer";
+    const head = card.querySelector(".card-head");
+    if(head) head.insertBefore(img,head.firstChild);
+  }
+  if(img.src!==src) img.src=src;
+  img.onerror=()=>{if(!img.src.endsWith("icon.svg"))img.src="icon.svg";};
 }
 
 function enhanceCards(){
@@ -81,7 +93,7 @@ function enhanceCards(){
 
 function updateVersion(){
   const footerSpans = document.querySelectorAll(".app-footer span");
-  if(footerSpans[1]) footerSpans[1].textContent = "v1.4 · última atualização 04/09/2026 · 09:57";
+  if(footerSpans[1]) footerSpans[1].textContent = "v1.5 · última atualização 04/09/2026 · 22:03";
 }
 
 function initCatalogViews(){
@@ -96,6 +108,8 @@ function initCatalogViews(){
     const observer = new MutationObserver(()=>enhanceCards());
     observer.observe(grid,{childList:true,subtree:true});
   }
+  window.addEventListener("oud-haenir-image-updated",()=>setTimeout(enhanceCards,50));
 }
 
 initCatalogViews();
+import("./parfumo-import.js").catch(err=>console.warn("Parfumo import module",err));
