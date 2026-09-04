@@ -11,60 +11,56 @@ const PERFUME_REFERENCES = {
   "ramad oriental": { match: "Outlands", house: "Amouage", source: "Parfumo", url: "https://www.parfumo.com/Perfumes/arabiyat-prestige/ramad-oriental", note: "Outlands é a principal referência no Parfumo; reviews colocam-no na mesma direção, mas não como cópia 1:1." }
 };
 
+const STORAGE_KEY="b612_scent_vault_v1";
 const normalize = value => (value || "").trim().toLowerCase();
+let transientReference=null;
+
+function storedReference(name){
+  try{
+    const arr=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+    const item=Array.isArray(arr)?arr.find(x=>normalize(x.name)===normalize(name)):null;
+    if(!item?.inspirationName)return null;
+    return {match:item.inspirationName,house:item.inspirationHouse||"",source:"Parfumo",url:item.inspirationUrl||item.parfumoUrl||"",note:"Principal correspondência importada de ‘Smells similar’ no Parfumo."};
+  }catch{return null;}
+}
 function findReference(name){
   const key = normalize(name);
-  return PERFUME_REFERENCES[key] || null;
+  if(transientReference?.name&&normalize(transientReference.name)===key)return transientReference.ref;
+  return PERFUME_REFERENCES[key] || storedReference(name) || null;
 }
 function block(ref){
   if(!ref) return `<div class="similarity-card similarity-empty"><strong>Referência Parfumo</strong><span>Ainda sem correspondência registada nesta versão.</span></div>`;
-  return `<div class="similarity-card"><div><small>INSPIRAÇÃO / SIMILARIDADE · ${ref.source}</small><strong>${ref.match}</strong><span>${ref.house}</span></div><p>${ref.note}</p><a href="${ref.url}" target="_blank" rel="noopener">Abrir no Parfumo ↗</a></div>`;
+  const link=ref.url?`<a href="${ref.url}" target="_blank" rel="noopener">Abrir no Parfumo ↗</a>`:"";
+  return `<div class="similarity-card"><div><small>INSPIRAÇÃO / SIMILARIDADE · ${ref.source}</small><strong>${ref.match}</strong><span>${ref.house||""}</span></div><p>${ref.note||""}</p>${link}</div>`;
 }
-
-function enhanceCards(){
+function enhanceCards(force=false){
   document.querySelectorAll("#grid .card").forEach(card => {
-    if(card.querySelector(".similarity-card")) return;
     const name = card.querySelector("h3")?.textContent || "";
-    const ref = findReference(name);
     const content = card.querySelector(".card-content");
-    if(content) content.insertAdjacentHTML("beforeend", block(ref));
+    if(!content)return;
+    const existing=card.querySelector(".similarity-card");
+    if(existing&&!force)return;
+    if(existing)existing.remove();
+    content.insertAdjacentHTML("beforeend", block(findReference(name)));
   });
 }
-
 function enhanceDialog(){
-  const dialog = document.getElementById("perfumeDialog");
-  const nameInput = document.getElementById("name");
-  if(!dialog || !nameInput) return;
-  let host = dialog.querySelector("#parfumoReference");
-  if(!host){
-    host = document.createElement("div");
-    host.id = "parfumoReference";
-    host.className = "span2";
-    const formGrid = dialog.querySelector(".form-grid");
-    if(formGrid) formGrid.appendChild(host);
-  }
-  host.innerHTML = block(findReference(nameInput.value));
+  const dialog=document.getElementById("perfumeDialog"),nameInput=document.getElementById("name");
+  if(!dialog||!nameInput)return;
+  let host=dialog.querySelector("#parfumoReference");
+  if(!host){host=document.createElement("div");host.id="parfumoReference";host.className="span2";dialog.querySelector(".form-grid")?.appendChild(host)}
+  host.innerHTML=block(findReference(nameInput.value));
 }
-
 function applyAppBranding(){
-  document.title = "Oud d’Haenir";
-  let favicon = document.querySelector('link[rel="icon"]');
-  if(!favicon){ favicon = document.createElement("link"); favicon.rel = "icon"; document.head.appendChild(favicon); }
-  favicon.type = "image/svg+xml";
-  favicon.href = "icon.svg";
-  const touch = document.querySelector('link[rel="apple-touch-icon"]');
-  if(touch) touch.href = "icon.svg";
-  const footerSpans = document.querySelectorAll(".app-footer span");
-  if(footerSpans[1]) footerSpans[1].textContent = "v1.3 · última atualização 03/09/2026 · 21:18";
+  document.title="Oud d’Haenir";
+  let favicon=document.querySelector('link[rel="icon"]');
+  if(!favicon){favicon=document.createElement("link");favicon.rel="icon";document.head.appendChild(favicon)}
+  favicon.type="image/png";favicon.href="oud-haenir-icon-192.png?v=1.8";
+  const touch=document.querySelector('link[rel="apple-touch-icon"]');if(touch)touch.href="oud-haenir-apple-touch-icon.png?v=1.8";
 }
-
-const observer = new MutationObserver(() => enhanceCards());
-const grid = document.getElementById("grid");
-if(grid) observer.observe(grid, { childList:true, subtree:true });
-
-document.addEventListener("click", event => {
-  if(event.target.closest(".edit") || event.target.closest("#addBtn") || event.target.closest("#floatingAdd")) setTimeout(enhanceDialog, 40);
-});
-document.getElementById("name")?.addEventListener("input", enhanceDialog);
-applyAppBranding();
-setTimeout(() => { enhanceCards(); enhanceDialog(); }, 100);
+const observer=new MutationObserver(()=>enhanceCards());const grid=document.getElementById("grid");if(grid)observer.observe(grid,{childList:true,subtree:true});
+document.addEventListener("click",e=>{if(e.target.closest(".edit")||e.target.closest("#addBtn")||e.target.closest("#floatingAdd")){transientReference=null;setTimeout(enhanceDialog,40)}});
+document.getElementById("name")?.addEventListener("input",enhanceDialog);
+window.addEventListener("oud-haenir-parfumo-import",e=>{const d=e.detail||{};transientReference=d.inspiration?{name:d.name,ref:d.inspiration}:null;enhanceDialog()});
+window.addEventListener("oud-haenir-metadata-updated",()=>{transientReference=null;setTimeout(()=>{enhanceCards(true);enhanceDialog()},80)});
+applyAppBranding();setTimeout(()=>{enhanceCards();enhanceDialog()},100);
