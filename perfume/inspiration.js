@@ -8,7 +8,8 @@ const PERFUME_REFERENCES = {
   "inekas luna": { match: "Gentleman Givenchy Réserve Privée", house: "Givenchy", source: "Parfumo", url: "https://www.parfumo.com/Perfumes/zimaya/inekas-luna", note: "Réserve Privée surge como a principal similaridade no Parfumo." },
   "liam grey": { match: "Gris Charnel Eau de Parfum", house: "BDK Parfums", source: "Parfumo", url: "https://www.parfumo.com/Perfumes/Lattafa/liam", note: "Gris Charnel EDP é a principal referência de similaridade; o Extrait também aparece logo a seguir." },
   "spectre ghost": { match: "Ani Extrait de Parfum", house: "Nishane", source: "Parfumo", url: "https://www.parfumo.com/Perfumes/french-avenue/spectre-ghost", note: "Ani Extrait aparece no topo das similaridades." },
-  "ramad oriental": { match: "Outlands", house: "Amouage", source: "Parfumo", url: "https://www.parfumo.com/Perfumes/arabiyat-prestige/ramad-oriental", note: "Outlands é a principal referência no Parfumo; reviews colocam-no na mesma direção, mas não como cópia 1:1." }
+  "ramad oriental": { match: "Outlands", house: "Amouage", source: "Parfumo", url: "https://www.parfumo.com/Perfumes/arabiyat-prestige/ramad-oriental", note: "Outlands é a principal referência no Parfumo; reviews colocam-no na mesma direção, mas não como cópia 1:1." },
+  "ateeq": { match: "Naxos", house: "Xerjoff", source: "Parfumo", url: "https://www.parfumo.com/Perfumes/nusuk/ateeq", note: "Naxos aparece em primeiro lugar na secção ‘Smells similar’ do Parfumo." }
 };
 
 const STORAGE_KEY="b612_scent_vault_v1";
@@ -26,7 +27,7 @@ function storedReference(name){
 function findReference(name){
   const key = normalize(name);
   if(transientReference?.name&&normalize(transientReference.name)===key)return transientReference.ref;
-  return PERFUME_REFERENCES[key] || storedReference(name) || null;
+  return storedReference(name) || PERFUME_REFERENCES[key] || null;
 }
 function block(ref){
   if(!ref) return `<div class="similarity-card similarity-empty"><strong>Referência Parfumo</strong><span>Ainda sem correspondência registada nesta versão.</span></div>`;
@@ -55,8 +56,8 @@ function applyAppBranding(){
   document.title="Oud d’Haenir";
   let favicon=document.querySelector('link[rel="icon"]');
   if(!favicon){favicon=document.createElement("link");favicon.rel="icon";document.head.appendChild(favicon)}
-  favicon.type="image/png";favicon.href="oud-haenir-icon-192.png?v=1.8";
-  const touch=document.querySelector('link[rel="apple-touch-icon"]');if(touch)touch.href="oud-haenir-apple-touch-icon.png?v=1.8";
+  favicon.type="image/png";favicon.href="oud-haenir-icon-192.png?v=1.9";
+  const touch=document.querySelector('link[rel="apple-touch-icon"]');if(touch)touch.href="oud-haenir-apple-touch-icon.png?v=1.9";
 }
 const observer=new MutationObserver(()=>enhanceCards());const grid=document.getElementById("grid");if(grid)observer.observe(grid,{childList:true,subtree:true});
 document.addEventListener("click",e=>{if(e.target.closest(".edit")||e.target.closest("#addBtn")||e.target.closest("#floatingAdd")){transientReference=null;setTimeout(enhanceDialog,40)}});
