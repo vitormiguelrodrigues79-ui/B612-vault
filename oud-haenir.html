@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#11110f">
   <title>Oud d’Haenir</title>
-  <link rel="stylesheet" href="./perfume/styles.css?v=1.15">
+  <link rel="stylesheet" href="./perfume/styles.css?v=1.15.1">
 </head>
 <body>
   <div id="boot" style="font-family:system-ui;padding:24px">A abrir Oud d’Haenir…</div>
@@ -20,22 +20,22 @@
         await Promise.all(keys.map(k => caches.delete(k)));
       }
 
-      const res = await fetch('./perfume/app-shell.html?standalone=1.15', { cache: 'no-store' });
+      const res = await fetch('./perfume/app-shell.html?standalone=1.15.1', { cache: 'no-store' });
       if (!res.ok) throw new Error(`shell ${res.status}`);
       const html = await res.text();
       const doc = new DOMParser().parseFromString(html, 'text/html');
       doc.querySelectorAll('script').forEach(s => s.remove());
       document.body.innerHTML = doc.body.innerHTML;
 
-      await import('./perfume/auth-guard.js?v=1.15');
-      await import('./perfume/app.js?v=1.15');
-      await import('./perfume/inspiration.js?v=1.15');
-      await import('./perfume/price-stores.js?v=1.15');
-      await import('./perfume/parfumo-import.js?v=1.15');
-      await import('./perfume/catalog-view.js?v=1.15');
+      await import('./perfume/auth-guard.js?v=1.15.1');
+      await import('./perfume/app.js?v=1.15.1');
+      await import('./perfume/inspiration.js?v=1.15.1');
+      await import('./perfume/price-stores.js?v=1.15.1');
+      await import('./perfume/parfumo-import.js?v=1.15.1');
+      await import('./perfume/catalog-view.js?v=1.15.1');
 
       const spans = document.querySelectorAll('.app-footer span');
-      if (spans[1]) spans[1].textContent = 'v1.15 · última atualização 05/09/2026 · 23:23';
+      if (spans[1]) spans[1].textContent = 'v1.15.1 · última atualização 05/09/2026 · 23:41';
     } catch (e) {
       console.error(e);
       document.body.innerHTML = '<p style="font-family:system-ui;padding:24px">Erro a carregar a app. Fecha este separador e tenta novamente.</p>';
