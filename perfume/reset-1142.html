@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#11110f">
+<title>Oud d’Haenir · Atualizar</title>
+</head>
+<body>
+<p style="font-family:system-ui;padding:24px">A atualizar Oud d’Haenir…</p>
+<script>
+(async()=>{
+  try{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+  }catch(e){console.warn(e)}
+  location.replace('./app-shell.html?build=1.14.2-reset-'+Date.now());
+})();
+</script>
+</body>
+</html>
