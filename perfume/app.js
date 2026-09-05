@@ -22,7 +22,34 @@ const $ = id => document.getElementById(id);
 const grid = $("grid");
 const dialog = $("perfumeDialog");
 
+ensureLifecycleUi();
 applyTheme(); wire(); render(); boot();
+
+function ensureLifecycleUi(){
+  const status=$("status");
+  if(status && !status.querySelector('option[value="past"]')){
+    const o=document.createElement("option"); o.value="past"; o.textContent="Já tive"; status.appendChild(o);
+  }
+  const tabs=document.querySelector(".tabs");
+  if(tabs && !tabs.querySelector('[data-status="past"]')){
+    const b=document.createElement("button"); b.className="tab"; b.dataset.status="past"; b.textContent="Já tive"; tabs.appendChild(b);
+  }
+  if(!$("marketPrices")){
+    const actions=document.querySelector("#perfumeForm .dialog-actions");
+    if(actions){
+      const title=document.createElement("div"); title.className="section-title"; title.textContent="Preços atuais";
+      const host=document.createElement("div"); host.id="marketPrices"; host.className="form-grid";
+      host.innerHTML=[1,2,3].map(i=>`<div class="span2 market-price-row"><label>Loja ${i}<input id="priceStore${i}" placeholder="Nome da loja"></label><label>Preço €<input id="priceValue${i}" type="number" min="0" step="0.01"></label><label>Link<input id="priceUrl${i}" type="url" placeholder="https://..."></label></div>`).join("");
+      actions.parentNode.insertBefore(title,actions); actions.parentNode.insertBefore(host,actions);
+      const style=document.createElement("style"); style.id="marketPriceStyles"; style.textContent=`.market-price-row{display:grid;grid-template-columns:minmax(0,1fr) 110px minmax(0,1.3fr);gap:10px;align-items:end}.market-price-row label{min-width:0}#finishedBtn{background:transparent;border:1px solid var(--line);font-weight:750}@media(max-width:620px){.market-price-row{grid-template-columns:1fr 100px}.market-price-row label:last-child{grid-column:1/-1}}`; document.head.appendChild(style);
+    }
+  }
+  const actions=document.querySelector("#perfumeForm .dialog-actions");
+  if(actions && !$("finishedBtn")){
+    const btn=document.createElement("button"); btn.type="button"; btn.id="finishedBtn"; btn.textContent="Acabou → Já tive"; btn.className="hidden";
+    const spacer=actions.querySelector("span"); actions.insertBefore(btn,spacer||actions.firstChild);
+  }
+}
 
 async function boot(){
   try{
@@ -59,7 +86,7 @@ function wire(){
   $("sortSelect").addEventListener("change",e=>{state.sort=e.target.value;renderCards();});
   $("addBtn").addEventListener("click",()=>openForm()); $("floatingAdd").addEventListener("click",()=>openForm());
   $("closeDialog").addEventListener("click",()=>dialog.close()); $("cancelBtn").addEventListener("click",()=>dialog.close());
-  $("perfumeForm").addEventListener("submit",savePerfume); $("deleteBtn").addEventListener("click",deletePerfume);
+  $("perfumeForm").addEventListener("submit",savePerfume); $("deleteBtn").addEventListener("click",deletePerfume); $("finishedBtn")?.addEventListener("click",markFinished);
   $("themeBtn").addEventListener("click",toggleTheme);
   $("syncBtn").addEventListener("click",()=>{ $("cloudPanel").classList.toggle("hidden"); refreshCloud(); });
   $("closeCloud").addEventListener("click",()=>$("cloudPanel").classList.add("hidden"));
@@ -88,48 +115,55 @@ function renderCards(){
   for(const item of items){
     const card=document.createElement("article"); card.className="card";
     const score=item.overallScore!==undefined&&item.overallScore!==null&&item.overallScore!==""?Number(item.overallScore).toFixed(1):"—";
-    const label=item.status==="collection"?"Tenho":item.status==="decant"?`Decant${item.sizeMl?` · ${item.sizeMl} ml`:""}`:"Wishlist";
+    const label=item.status==="collection"?"Tenho":item.status==="decant"?`Decant${item.sizeMl?` · ${item.sizeMl} ml`:""}`:item.status==="past"?"Já tive":"Wishlist";
     const chips=[...(item.seasons||[]),...(item.times||[])].map(v=>`<span class="chip">${esc(v)}</span>`).join("");
-    card.innerHTML=`<button class="edit" aria-label="Editar ${esc(item.name)}"></button><div class="card-content"><div class="card-head"><div><div class="brand">${esc(item.brand||"Sem marca")}</div><h3>${esc(item.name)}</h3><div class="status">${esc(label)} ${item.favorite?' <span class="favorite">★</span>':''}</div></div><div class="score">${score}</div></div><p class="profile">${esc(item.profile||"Perfil por preencher")}</p><div class="chips">${chips}</div><div class="card-foot"><div><small>Concentração</small><strong>${esc(item.concentration||"—")}</strong></div><div><small>Decisão</small><strong>${item.status==="wishlist"?"No radar":score==="—"?"Testar":"Avaliado"}</strong></div></div></div>`;
+    const best=(item.priceOptions||[]).map(x=>Number(x?.price)).filter(Number.isFinite).sort((a,b)=>a-b)[0];
+    const decision=item.status==="wishlist"?"No radar":item.status==="past"?"Terminado":score==="—"?"Testar":"Avaliado";
+    card.innerHTML=`<button class="edit" aria-label="Editar ${esc(item.name)}"></button><div class="card-content"><div class="card-head"><div><div class="brand">${esc(item.brand||"Sem marca")}</div><h3>${esc(item.name)}</h3><div class="status">${esc(label)} ${item.favorite?' <span class="favorite">★</span>':''}</div></div><div class="score">${score}</div></div><p class="profile">${esc(item.profile||"Perfil por preencher")}</p><div class="chips">${chips}</div><div class="card-foot"><div><small>${Number.isFinite(best)?"Melhor preço":"Concentração"}</small><strong>${Number.isFinite(best)?`${best.toFixed(2)} €`:esc(item.concentration||"—")}</strong></div><div><small>Decisão</small><strong>${decision}</strong></div></div></div>`;
     card.querySelector(".edit").addEventListener("click",()=>openForm(item.id)); grid.appendChild(card);
   }
 }
 
 function openForm(id=null){
-  $("perfumeForm").reset(); $("perfumeId").value=""; $("deleteBtn").classList.toggle("hidden",!id); $("dialogTitle").textContent=id?"Editar perfume":"Novo perfume";
+  $("perfumeForm").reset(); $("perfumeId").value=""; $("deleteBtn").classList.toggle("hidden",!id); $("finishedBtn")?.classList.toggle("hidden",!id); $("dialogTitle").textContent=id?"Editar perfume":"Novo perfume";
+  fillPriceOptions([]);
   if(id){
     const x=state.data.find(v=>v.id===id); if(!x)return;
     $("perfumeId").value=x.id; set("status",x.status); set("brand",x.brand); set("name",x.name); set("concentration",x.concentration); set("sizeMl",x.sizeMl); set("profile",x.profile); set("topNotes",x.topNotes); set("heartNotes",x.heartNotes); set("baseNotes",x.baseNotes); set("openingNotes",x.openingNotes); set("evolution30m",x.evolution30m); set("evolution2h",x.evolution2h); set("evolution6h",x.evolution6h); set("longevityScore",x.longevityScore); set("projectionScore",x.projectionScore); set("eleganceScore",x.eleganceScore); set("originalityScore",x.originalityScore); set("fitScore",x.fitScore); set("overallScore",x.overallScore); set("purchasePrice",x.purchasePrice); set("sourceUrl",x.sourceUrl); set("favorite",String(!!x.favorite)); set("notes",x.notes);
-    set("releaseYear",x.releaseYear); set("inspirationName",x.inspirationName); set("inspirationHouse",x.inspirationHouse); set("inspirationUrl",x.inspirationUrl);
+    set("releaseYear",x.releaseYear); set("inspirationName",x.inspirationName); set("inspirationHouse",x.inspirationHouse); set("inspirationUrl",x.inspirationUrl); fillPriceOptions(x.priceOptions||[]);
+    $("finishedBtn").textContent=x.status==="past"?"Já está em Já tive":"Acabou → Já tive"; $("finishedBtn").disabled=x.status==="past";
     document.querySelectorAll('input[name="season"]').forEach(cb=>cb.checked=(x.seasons||[]).includes(cb.value)); document.querySelectorAll('input[name="time"]').forEach(cb=>cb.checked=(x.times||[]).includes(cb.value));
-  }
+  } else if($("finishedBtn")){ $("finishedBtn").disabled=false; $("finishedBtn").textContent="Acabou → Já tive"; }
   dialog.showModal();
 }
 function set(id,v){ const e=$(id); if(e)e.value=v??""; }
 function num(id){ const e=$(id); if(!e)return null; const v=e.value; return v===""?null:Number(v); }
 function text(id){ return ($(id)?.value||"").trim(); }
 function picks(name){ return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x=>x.value); }
+function collectPriceOptions(){ return [1,2,3].map(i=>({store:text(`priceStore${i}`),price:num(`priceValue${i}`),url:text(`priceUrl${i}`)})).filter(x=>x.store||x.price!==null||x.url); }
+function fillPriceOptions(list){ for(let i=1;i<=3;i++){const x=(list||[])[i-1]||{};set(`priceStore${i}`,x.store||"");set(`priceValue${i}`,x.price??"");set(`priceUrl${i}`,x.url||"");} }
+function markFinished(){ if(!$("perfumeId").value){alert("Guarda primeiro o perfume.");return;} if(!confirm("Marcar este perfume como acabado e mover para ‘Já tive’?"))return; $("status").value="past"; $("perfumeForm").requestSubmit(); }
 
 async function savePerfume(e){
-  e.preventDefault(); const id=$("perfumeId").value||crypto.randomUUID(); const prev=state.data.find(x=>x.id===id);
+  e.preventDefault(); const id=$("perfumeId").value||crypto.randomUUID(); const prev=state.data.find(x=>x.id===id); const nextStatus=$("status").value;
   const item={
-    id,status:$("status").value,brand:text("brand"),name:text("name"),concentration:text("concentration"),sizeMl:num("sizeMl"),profile:text("profile"),seasons:picks("season"),times:picks("time"),topNotes:text("topNotes"),heartNotes:text("heartNotes"),baseNotes:text("baseNotes"),openingNotes:text("openingNotes"),evolution30m:text("evolution30m"),evolution2h:text("evolution2h"),evolution6h:text("evolution6h"),longevityScore:num("longevityScore"),projectionScore:num("projectionScore"),eleganceScore:num("eleganceScore"),originalityScore:num("originalityScore"),fitScore:num("fitScore"),overallScore:num("overallScore"),purchasePrice:num("purchasePrice"),sourceUrl:text("sourceUrl"),favorite:$("favorite").value==="true",notes:text("notes"),
+    id,status:nextStatus,brand:text("brand"),name:text("name"),concentration:text("concentration"),sizeMl:num("sizeMl"),profile:text("profile"),seasons:picks("season"),times:picks("time"),topNotes:text("topNotes"),heartNotes:text("heartNotes"),baseNotes:text("baseNotes"),openingNotes:text("openingNotes"),evolution30m:text("evolution30m"),evolution2h:text("evolution2h"),evolution6h:text("evolution6h"),longevityScore:num("longevityScore"),projectionScore:num("projectionScore"),eleganceScore:num("eleganceScore"),originalityScore:num("originalityScore"),fitScore:num("fitScore"),overallScore:num("overallScore"),purchasePrice:num("purchasePrice"),sourceUrl:text("sourceUrl"),favorite:$("favorite").value==="true",notes:text("notes"),priceOptions:collectPriceOptions(),
     releaseYear:num("releaseYear"),imageUrl:prev?.imageUrl||"",parfumoUrl:prev?.parfumoUrl||text("sourceUrl"),inspirationName:text("inspirationName")||prev?.inspirationName||"",inspirationHouse:text("inspirationHouse")||prev?.inspirationHouse||"",inspirationUrl:text("inspirationUrl")||prev?.inspirationUrl||"",
-    createdAt:prev?.createdAt||Date.now(),updatedAt:Date.now()
+    finishedAt:nextStatus==="past"?(prev?.finishedAt||Date.now()):null,createdAt:prev?.createdAt||Date.now(),updatedAt:Date.now()
   };
   state.data=prev?state.data.map(x=>x.id===id?item:x):[item,...state.data]; saveLocal(); render(); dialog.close(); await upsertCloud(item);
 }
 async function deletePerfume(){ const id=$("perfumeId").value;if(!id||!confirm("Apagar este perfume?"))return;state.data=state.data.filter(x=>x.id!==id);saveLocal();render();dialog.close();try{await supabase.from("perfumes").delete().eq("id",id);}catch(err){console.warn(err);} }
 
 function toRow(x,userId){ return {
-  id:x.id,user_id:userId,status:x.status,brand:x.brand||null,name:x.name,concentration:x.concentration||null,bottle_size_ml:x.status==="collection"?x.sizeMl:null,decant_size_ml:x.status==="decant"?x.sizeMl:null,
+  id:x.id,user_id:userId,status:x.status,brand:x.brand||null,name:x.name,concentration:x.concentration||null,bottle_size_ml:(x.status==="collection"||x.status==="past")?x.sizeMl:null,decant_size_ml:x.status==="decant"?x.sizeMl:null,
   image_url:x.imageUrl||null,profile:x.profile||null,top_notes:x.topNotes||null,heart_notes:x.heartNotes||null,base_notes:x.baseNotes||null,seasons:x.seasons||[],times:x.times||[],opening_notes:x.openingNotes||null,evolution_30m:x.evolution30m||null,evolution_2h:x.evolution2h||null,evolution_6h:x.evolution6h||null,
-  longevity_score:x.longevityScore,projection_score:x.projectionScore,elegance_score:x.eleganceScore,originality_score:x.originalityScore,fit_score:x.fitScore,overall_score:x.overallScore,purchase_price:x.purchasePrice,source_url:x.sourceUrl||null,favorite:!!x.favorite,notes:x.notes||null,
+  longevity_score:x.longevityScore,projection_score:x.projectionScore,elegance_score:x.eleganceScore,originality_score:x.originalityScore,fit_score:x.fitScore,overall_score:x.overallScore,purchase_price:x.purchasePrice,source_url:x.sourceUrl||null,favorite:!!x.favorite,notes:x.notes||null,price_options:x.priceOptions||[],finished_at:x.finishedAt?new Date(x.finishedAt).toISOString():null,
   release_year:x.releaseYear||null,parfumo_url:x.parfumoUrl||null,inspiration_name:x.inspirationName||null,inspiration_house:x.inspirationHouse||null,inspiration_url:x.inspirationUrl||null,
   updated_at:new Date(x.updatedAt||Date.now()).toISOString()
 }; }
 function fromRow(r){ return {
-  id:r.id,status:r.status,brand:r.brand||"",name:r.name||"",concentration:r.concentration||"",sizeMl:r.status==="decant"?(r.decant_size_ml??""):(r.bottle_size_ml??""),imageUrl:r.image_url||"",profile:r.profile||"",topNotes:r.top_notes||"",heartNotes:r.heart_notes||"",baseNotes:r.base_notes||"",seasons:r.seasons||[],times:r.times||[],openingNotes:r.opening_notes||"",evolution30m:r.evolution_30m||"",evolution2h:r.evolution_2h||"",evolution6h:r.evolution_6h||"",longevityScore:r.longevity_score,projectionScore:r.projection_score,eleganceScore:r.elegance_score,originalityScore:r.originality_score,fitScore:r.fit_score,overallScore:r.overall_score,purchasePrice:r.purchase_price,sourceUrl:r.source_url||"",favorite:!!r.favorite,notes:r.notes||"",
+  id:r.id,status:r.status,brand:r.brand||"",name:r.name||"",concentration:r.concentration||"",sizeMl:r.status==="decant"?(r.decant_size_ml??""):(r.bottle_size_ml??""),imageUrl:r.image_url||"",profile:r.profile||"",topNotes:r.top_notes||"",heartNotes:r.heart_notes||"",baseNotes:r.base_notes||"",seasons:r.seasons||[],times:r.times||[],openingNotes:r.opening_notes||"",evolution30m:r.evolution_30m||"",evolution2h:r.evolution_2h||"",evolution6h:r.evolution_6h||"",longevityScore:r.longevity_score,projectionScore:r.projection_score,eleganceScore:r.elegance_score,originalityScore:r.originality_score,fitScore:r.fit_score,overallScore:r.overall_score,purchasePrice:r.purchase_price,sourceUrl:r.source_url||"",favorite:!!r.favorite,notes:r.notes||"",priceOptions:Array.isArray(r.price_options)?r.price_options:[],finishedAt:r.finished_at?new Date(r.finished_at).getTime():null,
   releaseYear:r.release_year??null,parfumoUrl:r.parfumo_url||"",inspirationName:r.inspiration_name||r.parfumo_similar_name||"",inspirationHouse:r.inspiration_house||r.parfumo_similar_house||"",inspirationUrl:r.inspiration_url||r.parfumo_similar_url||"",
   createdAt:r.created_at?new Date(r.created_at).getTime():Date.now(),updatedAt:r.updated_at?new Date(r.updated_at).getTime():Date.now()
 }; }
