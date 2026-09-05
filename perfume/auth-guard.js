@@ -35,8 +35,7 @@ function blockAnonymousSignup(){
   const original=window.fetch.bind(window);
   window.fetch=async (input,init={})=>{
     const url=typeof input==="string"?input:(input?.url||"");
-    const body=typeof init?.body==="string"?init.body:"";
-    if(url.includes("/auth/v1/signup")&&body.includes('"data":{}')) throw new Error("Anonymous cloud sessions are disabled for Oud d’Haenir");
+    if(url.includes("/auth/v1/signup")) throw new Error("Anonymous cloud sessions are disabled for Oud d’Haenir");
     return original(input,init);
   };
 }
