@@ -6,6 +6,7 @@ const STORES=[
   {name:"Zaoud.it",host:"zaoud.it"},
   {name:"Koud.pt",host:"koud.pt"}
 ];
+const STORAGE_KEY="b612_scent_vault_v1";
 const $=id=>document.getElementById(id);
 const supabase=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 
@@ -34,6 +35,17 @@ function fillResult(index,result){
   if(result?.status==="found"&&Number.isFinite(Number(result.price))){price.value=Number(result.price).toFixed(2);url.value=result.url||"";price.dataset.live="1";url.dataset.live="1";}
   else {price.value="";url.value="";price.dataset.live="";url.dataset.live="";}
 }
+function currentOptions(){return STORES.map((s,idx)=>({store:s.name,price:(()=>{const v=$(`priceValue${idx+1}`)?.value;return v===""||v==null?null:Number(v)})(),url:$(`priceUrl${idx+1}`)?.value?.trim()||""})).filter(x=>x.price!==null||x.url)}
+function persistLocalPrices(){
+  const id=$("perfumeId")?.value; if(!id)return;
+  try{
+    const arr=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]"); if(!Array.isArray(arr))return;
+    const i=arr.findIndex(x=>x?.id===id); if(i<0)return;
+    arr[i]={...arr[i],priceOptions:currentOptions(),updatedAt:Date.now()};
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));
+    window.dispatchEvent(new CustomEvent("oud-haenir-prices-updated",{detail:{id,priceOptions:arr[i].priceOptions}}));
+  }catch(e){console.warn("persist local prices",e)}
+}
 
 async function searchPrices(){
   const brand=$("brand")?.value?.trim()||"", name=$("name")?.value?.trim()||"";
@@ -50,6 +62,7 @@ async function searchPrices(){
     if(error)throw error;
     const results=Array.isArray(data?.results)?data.results:[];
     STORES.forEach((s,idx)=>fillResult(idx+1,results.find(r=>r?.store===s.name)));
+    persistLocalPrices();
     const found=results.filter(r=>r?.status==="found"&&Number.isFinite(Number(r.price)));
     if(found.length){
       const best=[...found].sort((a,b)=>Number(a.price)-Number(b.price))[0];
