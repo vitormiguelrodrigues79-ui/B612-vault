@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#11110f" />
   <title>Oud d’Haenir</title>
-  <link rel="manifest" href="manifest.webmanifest?v=1.16.4" />
-  <link rel="apple-touch-icon" sizes="180x180" href="oud-haenir-apple-touch-icon.png?v=1.16.4" />
-  <link rel="icon" type="image/png" href="oud-haenir-apple-touch-icon.png?v=1.16.4" />
-  <link rel="stylesheet" href="styles.css?v=1.16.4" />
+  <link rel="manifest" href="manifest.webmanifest?v=1.16.5" />
+  <link rel="apple-touch-icon" sizes="180x180" href="oud-haenir-apple-touch-icon.png?v=1.16.5" />
+  <link rel="icon" type="image/png" href="oud-haenir-apple-touch-icon.png?v=1.16.5" />
+  <link rel="stylesheet" href="styles.css?v=1.16.5" />
   <style>
     .app-footer{max-width:1280px;margin:34px auto 0;padding:18px 22px calc(22px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line,#d9d6cc);font-size:11px;letter-spacing:.05em;opacity:.65}.app-footer strong{font-weight:750}
     .similarity-card{margin-top:16px;padding:14px;border:1px solid var(--line,#d9d6cc);border-radius:14px;background:color-mix(in srgb,var(--panel,#fff) 88%,#b89a5d 12%);display:grid;gap:8px}.similarity-card div{display:grid;gap:2px}.similarity-card small{font-size:10px;letter-spacing:.12em;opacity:.65}.similarity-card strong{font-size:15px}.similarity-card span,.similarity-card p{font-size:12px;opacity:.75;margin:0;line-height:1.45}.similarity-card a{font-size:12px;font-weight:700;color:inherit;text-decoration:none}.similarity-empty{opacity:.7}
@@ -115,15 +115,20 @@
     <button id="logoutBtn" class="wide">Sair</button>
   </aside>
 
-  <footer class="app-footer"><span><strong>Oud d’Haenir</strong> · perfume wardrobe</span><span>v1.16.4 · preços sob pedido</span></footer>
-  <script type="module" src="app.js?v=1.16.4"></script>
-  <script type="module" src="inspiration.js?v=1.16.4"></script>
-  <script type="module" src="catalog-view.js?v=1.16.4"></script>
-  <script type="module" src="parfumo-import.js?v=1.16.4"></script>
+  <footer class="app-footer"><span><strong>Oud d’Haenir</strong> · perfume wardrobe</span><span>v1.16.5 · cloud principal</span></footer>
+  <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1.16.5',{scope:'./'}).catch(err=>console.warn('sw',err)));
+    }
+  </script>
+  <script type="module" src="app.js?v=1.16.5"></script>
+  <script type="module" src="inspiration.js?v=1.16.5"></script>
+  <script type="module" src="catalog-view.js?v=1.16.5"></script>
+  <script type="module" src="parfumo-import.js?v=1.16.5"></script>
   <script type="module">
     let priceModulePromise=null;
     const loadPriceModule=()=>{
-      if(!priceModulePromise) priceModulePromise=import('./price-stores.js?v=1.16.4').catch(err=>{console.warn('price module',err);priceModulePromise=null;});
+      if(!priceModulePromise) priceModulePromise=import('./price-stores.js?v=1.16.5').catch(err=>{console.warn('price module',err);priceModulePromise=null;});
       return priceModulePromise;
     };
     document.addEventListener('click',e=>{
