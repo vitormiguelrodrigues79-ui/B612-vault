@@ -18,6 +18,15 @@ const normalizeName = value => (value || "").trim().toLowerCase();
 function readCollection(){try{const arr=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(arr)?arr:[]}catch{return []}}
 function storedPerfumeFor(name){const key=normalizeName(name);return readCollection().find(x=>normalizeName(x?.name)===key)||null}
 function storedImageFor(name){const match=storedPerfumeFor(name);return match?.imageUrl||""}
+function bestPriceFor(item){
+  const values=(item?.priceOptions||[])
+    .map(x=>x?.price)
+    .filter(v=>v!==null&&v!==undefined&&v!=="")
+    .map(Number)
+    .filter(v=>Number.isFinite(v)&&v>0)
+    .sort((a,b)=>a-b);
+  return values[0];
+}
 
 function injectStyles(){
   if(document.getElementById("catalogViewStyles")) return;
@@ -73,8 +82,24 @@ function setView(mode){
   localStorage.setItem(VIEW_KEY,next);
 }
 
+function enhancePrice(card,name){
+  const item=storedPerfumeFor(name); if(!item)return;
+  const foot=card.querySelector(".card-foot"); if(!foot)return;
+  const first=foot.firstElementChild; if(!first)return;
+  const small=first.querySelector("small"),strong=first.querySelector("strong"); if(!small||!strong)return;
+  const best=bestPriceFor(item);
+  if(Number.isFinite(best)){
+    small.textContent="Melhor preço";
+    strong.textContent=`${best.toFixed(2)} €`;
+  }else if(strong.textContent.trim()==="0.00 €"||small.textContent.trim()==="Melhor preço"){
+    small.textContent="Concentração";
+    strong.textContent=item.concentration||"—";
+  }
+}
+
 function enhanceCard(card){
   const name=card.querySelector("h3")?.textContent||"";
+  enhancePrice(card,name);
   const src=storedImageFor(name)||PERFUME_PHOTOS[normalizeName(name)];
   if(!src)return;
   let img=card.querySelector(".perfume-photo");
@@ -88,5 +113,6 @@ function initCatalogViews(){
   injectStyles(); ensureSwitcher(); setView(localStorage.getItem(VIEW_KEY)||"details"); enhanceCards();
   const grid=document.getElementById("grid"); if(grid){const observer=new MutationObserver(()=>enhanceCards());observer.observe(grid,{childList:true,subtree:true})}
   window.addEventListener("storage",()=>setTimeout(enhanceCards,50));
+  window.addEventListener("oud-haenir-prices-updated",()=>setTimeout(enhanceCards,20));
 }
 initCatalogViews();
