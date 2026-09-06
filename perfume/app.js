@@ -55,20 +55,37 @@ async function boot(){
   try{
     const { data } = await supabase.auth.getSession();
     state.user = data.session?.user || null;
-    if (!state.user && !hasAuthCallback()) {
-      const { data:anon, error } = await supabase.auth.signInAnonymously();
-      if (error) throw error;
-      state.user = anon?.user || null;
+    if(state.user?.is_anonymous){
+      await supabase.auth.signOut();
+      state.user=null;
     }
-    if (state.user) await syncCloud();
-    if (!state.data.length) {
-      const now=Date.now();
-      state.data=seedTemplate.map((x,i)=>({id:crypto.randomUUID(),createdAt:now-i*1000,updatedAt:now-i*1000,favorite:false,...x}));
-      saveLocal(); render();
-      if(state.user) await syncCloud();
+    if(state.user){
+      await syncCloud();
+    }else{
+      state.data=[];
+      saveLocal();
+      render();
+      $("cloudPanel")?.classList.remove("hidden");
     }
-  }catch(err){ console.warn("boot",err); if(!state.data.length){ const now=Date.now(); state.data=seedTemplate.map((x,i)=>({id:crypto.randomUUID(),createdAt:now-i*1000,updatedAt:now-i*1000,favorite:false,...x})); saveLocal(); render(); } }
-  supabase.auth.onAuthStateChange(async (_event,session)=>{ state.user=session?.user||null; refreshCloud(); if(state.user) await syncCloud(); });
+  }catch(err){
+    console.warn("boot",err);
+    state.user=null;
+    state.data=[];
+    saveLocal();
+    render();
+    $("cloudPanel")?.classList.remove("hidden");
+  }
+  supabase.auth.onAuthStateChange(async (_event,session)=>{
+    const user=session?.user||null;
+    if(user?.is_anonymous){
+      await supabase.auth.signOut();
+      state.user=null;
+      return;
+    }
+    state.user=user;
+    refreshCloud();
+    if(state.user) await syncCloud();
+  });
   refreshCloud();
 }
 
@@ -153,7 +170,7 @@ async function savePerfume(e){
   };
   state.data=prev?state.data.map(x=>x.id===id?item:x):[item,...state.data]; saveLocal(); render(); dialog.close(); await upsertCloud(item);
 }
-async function deletePerfume(){ const id=$("perfumeId").value;if(!id||!confirm("Apagar este perfume?"))return;state.data=state.data.filter(x=>x.id!==id);saveLocal();render();dialog.close();try{await supabase.from("perfumes").delete().eq("id",id);}catch(err){console.warn(err);} }
+async function deletePerfume(){ const id=$("perfumeId").value;if(!id||!confirm("Apagar este perfume?"))return;state.data=state.data.filter(x=>x.id!==id);saveLocal();render();dialog.close();if(!state.user)return;try{await supabase.from("perfumes").delete().eq("id",id);}catch(err){console.warn(err);} }
 
 function toRow(x,userId){ return {
   id:x.id,user_id:userId,status:x.status,brand:x.brand||null,name:x.name,concentration:x.concentration||null,bottle_size_ml:(x.status==="collection"||x.status==="past")?x.sizeMl:null,decant_size_ml:x.status==="decant"?x.sizeMl:null,
@@ -167,17 +184,30 @@ function fromRow(r){ return {
   releaseYear:r.release_year??null,parfumoUrl:r.parfumo_url||"",inspirationName:r.inspiration_name||r.parfumo_similar_name||"",inspirationHouse:r.inspiration_house||r.parfumo_similar_house||"",inspirationUrl:r.inspiration_url||r.parfumo_similar_url||"",
   createdAt:r.created_at?new Date(r.created_at).getTime():Date.now(),updatedAt:r.updated_at?new Date(r.updated_at).getTime():Date.now()
 }; }
-async function upsertCloud(item){ if(!state.user)return; try{ const {error}=await supabase.from("perfumes").upsert(toRow(item,state.user.id),{onConflict:"id"}); if(error)throw error; }catch(err){console.warn("cloud",err);} }
-async function syncCloud(){ if(!state.user||state.syncing)return; state.syncing=true; refreshCloud(); try{ const {data:rows,error}=await supabase.from("perfumes").select("*").order("updated_at",{ascending:false}); if(error)throw error; const cloud=(rows||[]).map(fromRow); const cloudMap=new Map(cloud.map(x=>[x.id,x])); const merged=new Map(cloud.map(x=>[x.id,x])); const pending=[]; for(const local of state.data){ const c=cloudMap.get(local.id); if(!c||(local.updatedAt||0)>(c.updatedAt||0)){merged.set(local.id,local);pending.push(toRow(local,state.user.id));}} if(pending.length){const {error:e}=await supabase.from("perfumes").upsert(pending,{onConflict:"id"});if(e)throw e;} state.data=[...merged.values()].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));saveLocal();render(); }catch(err){console.warn("sync",err);} finally{state.syncing=false;refreshCloud();} }
+function identityKey(x){ return `${String(x.brand||"").trim().toLowerCase()}::${String(x.name||"").trim().toLowerCase()}`; }
+function dedupeCloud(items){ const seen=new Set(); return items.filter(x=>{ const k=identityKey(x); if(seen.has(k))return false; seen.add(k); return true; }); }
+async function upsertCloud(item){ if(!state.user||state.user.is_anonymous)return; try{ const {error}=await supabase.from("perfumes").upsert(toRow(item,state.user.id),{onConflict:"id"}); if(error)throw error; await syncCloud(); }catch(err){console.warn("cloud",err);} }
+async function syncCloud(){
+  if(!state.user||state.user.is_anonymous||state.syncing)return;
+  state.syncing=true; refreshCloud();
+  try{
+    const {data:rows,error}=await supabase.from("perfumes").select("*").order("updated_at",{ascending:false});
+    if(error)throw error;
+    const cloud=dedupeCloud((rows||[]).map(fromRow));
+    state.data=cloud;
+    saveLocal();
+    render();
+  }catch(err){console.warn("sync",err);}
+  finally{state.syncing=false;refreshCloud();}
+}
 
 async function loginGoogle(){
   try{
-    if(state.user?.is_anonymous){ await supabase.auth.signOut(); state.user=null; }
     const redirectTo=`${location.origin}${location.pathname}`;
     const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo,queryParams:{access_type:"offline",prompt:"select_account"}}});
     if(error) throw error;
   }catch(err){ alert(`Não foi possível iniciar o login: ${err.message}`); }
 }
-async function logout(){ await supabase.auth.signOut(); state.user=null; refreshCloud(); }
-function refreshCloud(){ const p=$("cloudStatus"); if(state.syncing)p.textContent="A sincronizar perfumes…"; else if(!state.user)p.textContent="Modo local. Entra com Google para sincronizar entre dispositivos."; else if(state.user.is_anonymous)p.textContent="Sessão anónima ativa. Os dados locais funcionam; entra com Google para os fixar na tua conta."; else p.textContent=`Ligado a ${state.user.email||"conta Google"}. ${state.data.length} registos disponíveis.`; $("googleLoginBtn").classList.toggle("hidden",!!state.user&&!state.user.is_anonymous); $("logoutBtn").classList.toggle("hidden",!state.user||state.user.is_anonymous); }
+async function logout(){ await supabase.auth.signOut(); state.user=null; state.data=[]; saveLocal(); render(); refreshCloud(); }
+function refreshCloud(){ const p=$("cloudStatus"); if(!p)return; if(state.syncing)p.textContent="A sincronizar perfumes…"; else if(!state.user)p.textContent="Entra com Google para carregar a coleção guardada na cloud."; else p.textContent=`Cloud ligada. ${state.data.length} perfumes disponíveis.`; $("googleLoginBtn").classList.toggle("hidden",!!state.user); $("logoutBtn").classList.toggle("hidden",!state.user); }
 function esc(v=""){return String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
