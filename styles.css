@@ -34,3 +34,6 @@ dialog{width:min(760px,100%);max-height:92dvh;border:1px solid var(--line);borde
 .logout-prominent{margin-top:16px;padding:14px 16px;font-weight:800;font-size:15px;border-color:#6a2a31;background:#421c20;color:#ffb8be}
 .footer-logout{border:1px solid var(--line);background:#271417;color:#ffb8be;border-radius:10px;padding:7px 10px;font-weight:700}
 @media (max-width:640px){.footer{gap:8px;flex-wrap:wrap}.footer-logout{margin-left:auto}}
+
+/* Keep a single add-watch action: the contextual + in the current category. */
+#addBtn{display:none!important}
