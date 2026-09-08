@@ -5,7 +5,7 @@ import {
   signedPhoto,uploadPhoto,deletePhoto
 } from "./supabase.js";
 
-const VERSION="B612-Vault v6.0 STAGING";
+const VERSION="B612-Vault v6.1 STAGING";
 const views=["homeView","categoryView","friendsView","friendProfileView","accountView"];
 const state={user:null,profile:null,watches:[],friendships:[],friends:[],category:"collection",friendTarget:null,friendCategory:"collection",friendWatches:[],search:"",sort:"updated"};
 let pendingPhoto=null, removeExistingPhoto=false;
@@ -215,3 +215,61 @@ async function deleteCurrentWatch(){
 function tick(){
   const d=new Date();$("versionInfo").textContent=VERSION;$("clockInfo").textContent=new Intl.DateTimeFormat("pt-PT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d);
 }
+
+
+// PWA install support (Android + iOS/iPadOS)
+let deferredInstallPrompt = null;
+
+function isStandaloneMode(){
+  return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function isIOSDevice(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function updateInstallButton(){
+  const btn = $("installAppBtn");
+  const hint = $("installHint");
+  if(!btn) return;
+  if(isStandaloneMode()){
+    btn.textContent = "App instalada";
+    btn.disabled = true;
+    if(hint) hint.textContent = "B612-Vault já está instalada neste dispositivo.";
+    return;
+  }
+  btn.disabled = false;
+  btn.textContent = isIOSDevice() ? "Instalar no iPhone / iPad" : "Instalar app";
+}
+async function installApp(){
+  if(isStandaloneMode()) return;
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    try{ await deferredInstallPrompt.userChoice; }catch(_e){}
+    deferredInstallPrompt = null;
+    updateInstallButton();
+    return;
+  }
+  if(isIOSDevice()){
+    alert("Para instalar a B612-Vault no iPhone/iPad:\n\n1. Abre esta página no Safari.\n2. Toca no botão Partilhar.\n3. Escolhe ‘Adicionar ao ecrã principal’.\n4. Confirma em ‘Adicionar’.\n\nA app ficará no ecrã principal como uma aplicação normal.");
+    return;
+  }
+  alert("Se o botão de instalação do navegador ainda não apareceu, abre o menu do navegador e escolhe ‘Instalar app’ ou ‘Adicionar ao ecrã principal’. Em Chrome/Android esta opção aparece quando a PWA já está pronta para instalar.");
+}
+window.addEventListener('beforeinstallprompt', (event)=>{
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateInstallButton();
+});
+window.addEventListener('appinstalled', ()=>{
+  deferredInstallPrompt = null;
+  updateInstallButton();
+});
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch((err)=>console.warn('Service worker:', err));
+  });
+}
+window.addEventListener('DOMContentLoaded', ()=>{
+  const btn = $("installAppBtn");
+  if(btn) btn.addEventListener('click', installApp);
+  updateInstallButton();
+});

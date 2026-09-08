@@ -9,6 +9,7 @@
   <title>B612-Vault · Staging</title>
   <link rel="icon" href="../icon-512.png" type="image/png" />
   <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -207,6 +208,8 @@
           <div class="account-line"><span>Login</span><strong id="accountEmail">—</strong></div>
           <div class="account-line"><span>Estado</span><strong>Google / Supabase</strong></div>
           <button id="accountSyncBtn" class="primary-btn full">Sincronizar agora</button>
+          <button id="installAppBtn" class="primary-btn full">Instalar app</button>
+          <div id="installHint" class="install-hint">Android: instalação direta quando disponível. iPhone/iPad: abre as instruções para adicionar ao ecrã principal.</div>
           <button id="logoutBtn" class="danger-btn full">Log off</button>
         </div>
       </section>
@@ -214,7 +217,7 @@
 
     <footer class="footer">
       <button id="accountBtn">Cloud</button>
-      <span id="versionInfo">B612-Vault v6.0 STAGING</span>
+      <span id="versionInfo">B612-Vault v6.1 STAGING</span>
       <span id="clockInfo">—</span>
     </footer>
   </div>
