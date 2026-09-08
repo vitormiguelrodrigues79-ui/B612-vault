@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1012" />
+  <title>B612-Vault TEST</title>
+  <link rel="icon" href="../icon-512.png" type="image/png" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <section id="loginGate" class="login-gate">
+    <div class="login-card">
+      <div class="test-pill">ZONA TESTE</div>
+      <img src="../app-symbol.jpg" class="login-logo" alt="B612-Vault">
+      <div class="eyebrow">PRIVATE COLLECTION</div>
+      <h1>B612-Vault</h1>
+      <p>Entra com a tua conta Google para aceder à tua coleção. Não existem sessões anónimas nesta versão.</p>
+      <button id="gateGoogleBtn" class="google-btn full-btn"><span class="google-g">G</span><span>Entrar com Google</span></button>
+      <div id="gateMessage" class="cloud-message"></div>
+    </div>
+  </section>
+
+  <div id="appShell" class="app-shell hidden">
+    <section id="homeView" class="view">
+      <header class="home-hero">
+        <div class="hero-copy">
+          <div class="eyebrow">PRIVATE COLLECTION · TEST</div>
+          <div class="brand-lockup">
+            <img src="../app-symbol.jpg" alt="B612 Vault" class="hero-symbol" />
+            <div><h1>B612-Vault</h1><p class="hero-sub">Coleção privada, builds, wishlist e amigos.</p></div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button id="homeCloudBtn" class="round-btn" aria-label="Conta">☁</button>
+          <button id="homeAddBtn" class="round-btn primary" aria-label="Adicionar">+</button>
+        </div>
+      </header>
+
+      <main class="home-grid">
+        <button class="entry-card" data-category="collection"><div class="entry-icon">⌚</div><div class="entry-text"><h2>Coleção</h2><p>Os relógios que já fazem parte da tua rotação.</p></div><span class="entry-meta" id="countCollection">0</span></button>
+        <button class="entry-card" data-category="build"><div class="entry-icon">🛠</div><div class="entry-text"><h2>Build</h2><p>Projetos montados ou em desenvolvimento.</p></div><span class="entry-meta" id="countBuild">0</span></button>
+        <button class="entry-card" data-category="wishlist"><div class="entry-icon">♡</div><div class="entry-text"><h2>Wishlist</h2><p>Relógios e marcas que queres acompanhar.</p></div><span class="entry-meta" id="countWishlist">0</span></button>
+        <button id="friendsEntry" class="entry-card"><div class="entry-icon">👥</div><div class="entry-text"><h2>Amigos</h2><p>Partilha coleções com controlo de privacidade.</p></div><span class="entry-meta" id="countFriends">0</span></button>
+      </main>
+    </section>
+
+    <section id="listView" class="view hidden">
+      <header class="sub-header"><div class="sub-left"><button class="round-btn homeBtn">⌂</button><div><div id="listEyebrow" class="eyebrow">CATEGORIA</div><h2 id="listTitle">Coleção</h2><p id="listIntro" class="sub-intro"></p></div></div><div class="sub-actions"><button class="round-btn cloudBtn">☁</button><button id="listAddBtn" class="round-btn primary">+</button></div></header>
+      <section class="toolbar"><input id="searchInput" class="search" type="search" placeholder="Pesquisar marca, modelo, movimento..."/><select id="sortSelect" class="select"><option value="updated">Recentes</option><option value="name">Nome A–Z</option></select></section>
+      <main id="watchGrid" class="watch-grid"></main><div id="emptyState" class="empty-state hidden"></div>
+    </section>
+
+    <section id="friendsView" class="view hidden">
+      <header class="sub-header"><div class="sub-left"><button class="round-btn homeBtn">⌂</button><div><div class="eyebrow">SOCIAL</div><h2>Amigos</h2><p class="sub-intro">Pedidos, amigos e coleções partilhadas.</p></div></div></header>
+      <section class="cloud-card">
+        <h3>Adicionar amigo</h3>
+        <p class="cloud-copy">Procura pelo email da conta Google que a pessoa usa no B612-Vault.</p>
+        <div class="inline-form"><input id="friendEmail" class="search" type="email" placeholder="amigo@gmail.com"><button id="addFriendBtn" class="primary-btn">Enviar pedido</button></div>
+        <div id="friendMessage" class="cloud-message"></div>
+      </section>
+      <section class="friends-columns">
+        <div class="cloud-card"><h3>Pedidos</h3><div id="requestsList" class="social-list"></div></div>
+        <div class="cloud-card"><h3>Os meus amigos</h3><div id="friendsList" class="social-list"></div></div>
+      </section>
+    </section>
+
+    <section id="friendCollectionView" class="view hidden">
+      <header class="sub-header"><div class="sub-left"><button id="backFriendsBtn" class="round-btn">‹</button><div><div class="eyebrow">COLEÇÃO PARTILHADA</div><h2 id="friendName">Amigo</h2><p class="sub-intro">Só aparece o que este utilizador decidiu partilhar.</p></div></div></header>
+      <div class="friend-tabs"><button data-friend-status="collection" class="ghost-btn active">Coleção</button><button data-friend-status="build" class="ghost-btn">Build</button><button data-friend-status="wishlist" class="ghost-btn">Wishlist</button></div>
+      <main id="friendWatchGrid" class="watch-grid"></main><div id="friendEmpty" class="empty-state hidden"></div>
+    </section>
+
+    <section id="cloudView" class="view hidden">
+      <header class="sub-header"><div class="sub-left"><button class="round-btn homeBtn">⌂</button><div><div class="eyebrow">CONTA & PRIVACIDADE</div><h2>Nuvem</h2><p class="sub-intro">Sessão, sincronização e visibilidade para amigos.</p></div></div></header>
+      <main class="cloud-layout">
+        <section class="cloud-card"><h3>Conta Google</h3><div class="pill ok">Login ativo</div><div class="cloud-user-row"><span class="label">Utilizador</span><strong id="cloudUserValue">—</strong></div><div class="cloud-actions-row"><button id="syncNowBtn" class="primary-btn">Sincronizar</button><button id="logoutBtn" class="ghost-btn">Log off</button></div><div id="cloudMessage" class="cloud-message"></div></section>
+        <section class="cloud-card"><h3>Privacidade</h3><p class="cloud-copy">Escolhe quem pode ver cada parte do teu B612-Vault.</p>
+          <label class="privacy-row"><span>Coleção</span><select id="privacyCollection"><option value="public">Todos os utilizadores</option><option value="friends">Só amigos</option><option value="private">Privado</option></select></label>
+          <label class="privacy-row"><span>Build</span><select id="privacyBuild"><option value="public">Todos os utilizadores</option><option value="friends">Só amigos</option><option value="private">Privado</option></select></label>
+          <label class="privacy-row"><span>Wishlist</span><select id="privacyWishlist"><option value="public">Todos os utilizadores</option><option value="friends">Só amigos</option><option value="private">Privado</option></select></label>
+          <div class="cloud-note">Custos de aquisição e notas privadas nunca são enviados para a vista dos amigos.</div>
+        </section>
+        <section class="cloud-card"><h3>Backup local</h3><div class="cloud-actions-row"><button id="exportBtn" class="ghost-btn">Exportar backup</button><label class="ghost-btn file-btn">Importar backup<input id="importInput" type="file" accept="application/json" hidden></label></div></section>
+      </main>
+    </section>
+
+    <footer class="footer-bar"><div id="nowInfo">--</div><div>B612-Vault v6.0-beta · 08/09/2026 19:30</div></footer>
+  </div>
+
+  <dialog id="watchDialog" class="dialog">
+    <form id="watchForm" class="form">
+      <div class="dialog-head"><div><div class="eyebrow">WATCH PROFILE</div><h2 id="dialogTitle">Novo registo</h2></div><button type="button" id="closeDialog" class="round-btn small">×</button></div>
+      <input type="hidden" id="watchId"><input type="hidden" id="imageStoragePath">
+      <div class="form-grid">
+        <label>Categoria<select id="status"><option value="collection">Coleção</option><option value="build">Build</option><option value="wishlist">Wishlist</option></select></label>
+        <label id="wishlistTypeWrap" class="hidden">Tipo de wishlist<select id="wishlistType"><option value="watch">Relógio específico</option><option value="brand">Apenas marca</option></select></label>
+        <label>Marca<input id="brand"></label><label class="span-2">Modelo / Nome<input id="model"></label><label>Referência<input id="reference"></label><label>Movimento<input id="movement"></label><label>Diâmetro (mm)<input id="diameter" type="number" step="0.1"></label><label>Ano<input id="year" type="number"></label><label>Custo aquisição / preço alvo (€)<input id="purchasePrice" type="number" step="0.01"></label>
+        <div class="span-2 photo-field"><label>Fotografia</label><div class="photo-upload-card"><img id="photoPreview" class="photo-preview hidden" alt=""><div class="photo-upload-actions"><label class="primary-btn photo-picker">Adicionar foto<input id="photoInput" type="file" accept="image/*" hidden></label><button type="button" id="removePhotoBtn" class="ghost-btn hidden">Remover</button></div><div id="photoStatus" class="photo-status">Escolhe uma fotografia.</div></div></div>
+        <label class="span-2">Link<input id="link"></label><label>Caixa<input id="casePart"></label><label>Dial<input id="dialPart"></label><label>Ponteiros<input id="handsPart"></label><label>Bracelete / Strap<input id="strapPart"></label><label class="span-2">Notas<textarea id="notes" rows="4"></textarea></label>
+      </div>
+      <div class="form-actions"><button type="button" id="deleteBtn" class="danger-btn hidden">Eliminar</button><div class="actions-right"><button type="button" id="cancelBtn" class="ghost-btn">Cancelar</button><button type="submit" class="primary-btn">Guardar</button></div></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
