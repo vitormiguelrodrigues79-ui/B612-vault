@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#11110f">
+  <title>Instalar Oud d’Haenir · TESTE</title>
+  <link rel="manifest" href="manifest.webmanifest?v=1.0.0">
+  <link rel="apple-touch-icon" href="../perfume/oud-haenir-apple-touch-icon.png?v=1.16.5">
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#181816;background:#f3f1eb}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(180deg,#ebe7dd,#f8f7f3)}
+    .card{width:min(100%,520px);background:#fff;border:1px solid #d9d6cc;border-radius:28px;padding:28px;box-shadow:0 18px 50px rgba(0,0,0,.08)}
+    .eyebrow{font-size:11px;letter-spacing:.16em;font-weight:800;opacity:.55}.logo{width:72px;height:72px;border-radius:18px;margin:16px 0;display:block}
+    h1{font-size:30px;line-height:1.05;margin:0 0 10px}p{line-height:1.55;color:#66635d;margin:0 0 18px}.steps{display:grid;gap:10px;margin:20px 0}
+    .step{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border:1px solid #e4e1d8;border-radius:15px;background:#faf9f6}.n{width:24px;height:24px;border-radius:50%;background:#181816;color:white;display:grid;place-items:center;font-size:12px;font-weight:800;flex:0 0 auto}
+    button,a.action{width:100%;border:0;border-radius:14px;padding:14px 16px;font:inherit;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;display:block}.primary{background:#181816;color:#fff}.secondary{margin-top:9px;background:#efede7;color:#181816}.hint{font-size:12px;color:#77736b;margin-top:14px}.hidden{display:none!important}.ok{padding:14px;border-radius:14px;background:#edf6ed;color:#315b31;margin:16px 0}.test{font-size:10px;letter-spacing:.12em;font-weight:800;color:#8b1e1e;margin-bottom:12px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="test">VERSÃO DE TESTE</div>
+    <div class="eyebrow">PRIVATE SCENT LIBRARY</div>
+    <img class="logo" src="../perfume/oud-haenir-apple-touch-icon.png?v=1.16.5" alt="Oud d’Haenir">
+    <h1>Oud d’Haenir</h1>
+    <p id="intro">Instala a app no teu telemóvel para a teres sempre no ecrã principal.</p>
+
+    <div id="installed" class="ok hidden">A app já está instalada neste dispositivo.</div>
+
+    <div id="androidBox" class="hidden">
+      <div class="steps"><div class="step"><span class="n">1</span><span>Toca em <strong>Instalar app</strong>.</span></div><div class="step"><span class="n">2</span><span>Confirma a instalação quando o Android perguntar.</span></div></div>
+      <button id="installBtn" class="primary">Instalar app</button>
+      <p id="androidFallback" class="hint hidden">Se o botão não abrir a instalação, usa o menu do Chrome ⋮ e escolhe “Instalar app” ou “Adicionar ao ecrã principal”.</p>
+    </div>
+
+    <div id="iosBox" class="hidden">
+      <div class="steps"><div class="step"><span class="n">1</span><span>Abre esta página no <strong>Safari</strong>.</span></div><div class="step"><span class="n">2</span><span>Toca no botão <strong>Partilhar</strong> do Safari.</span></div><div class="step"><span class="n">3</span><span>Escolhe <strong>Adicionar ao ecrã principal</strong> e confirma.</span></div></div>
+      <p class="hint">No iPhone a Apple exige estes passos; a instalação não pode ser feita automaticamente por um site.</p>
+    </div>
+
+    <div id="genericBox" class="hidden"><p>Abre esta página no Chrome ou Safari e usa a opção de adicionar/instalar no ecrã principal.</p></div>
+    <a class="action secondary" href="./?invite=1">Abrir app sem instalar</a>
+  </main>
+<script>
+  let deferredPrompt=null;
+  const ua=navigator.userAgent||'';
+  const ios=/iPad|iPhone|iPod/.test(ua) || (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const android=/Android/i.test(ua);
+  const standalone=window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+  const $=id=>document.getElementById(id);
+  if(standalone){$('installed').classList.remove('hidden');$('intro').textContent='Já podes abrir o Oud d’Haenir diretamente a partir do teu ecrã principal.';}
+  else if(ios){$('iosBox').classList.remove('hidden');}
+  else if(android){$('androidBox').classList.remove('hidden');$('androidFallback').classList.remove('hidden');}
+  else {$('genericBox').classList.remove('hidden');}
+
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('androidBox')?.classList.remove('hidden');$('androidFallback')?.classList.add('hidden');});
+  $('installBtn')?.addEventListener('click',async()=>{if(!deferredPrompt){$('androidFallback').classList.remove('hidden');return;}deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;});
+  window.addEventListener('appinstalled',()=>{$('installed').classList.remove('hidden');$('androidBox')?.classList.add('hidden');});
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1',{scope:'./'}).catch(err=>console.warn('sw',err)));}
+</script>
+</body>
+</html>
