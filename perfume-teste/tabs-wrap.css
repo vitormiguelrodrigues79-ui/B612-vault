@@ -1,0 +1,16 @@
+@media (max-width: 700px){
+  .tabs{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    width:100%;
+    overflow:visible !important;
+  }
+  .tabs .tab,
+  .tabs .friends-test-tab{
+    width:100%;
+    min-width:0;
+    white-space:normal;
+    text-align:center;
+  }
+}
