@@ -1,242 +1,146 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { SUPABASE_URL, SUPABASE_KEY, SUPABASE_BUCKET } from "./supabase-config.js";
 
-let supabase;
-let currentUser = null;
-let initPromise = null;
-const listeners = [];
+const SUPABASE_URL = "https://boyhtywhuumbayejfbse.supabase.co";
+const SUPABASE_KEY = "sb_publishable_U3BQ__QzzsBOSq6w_2LGew_GczKnjhO";
+const BUCKET = "watch-photos";
 
-function hasAuthCallbackInUrl() {
-  const url = new URL(window.location.href);
-  const hash = window.location.hash || "";
-  return url.searchParams.has("code") || url.searchParams.has("error") || hash.includes("access_token") || hash.includes("refresh_token") || hash.includes("type=") || hash.includes("error=");
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+
+export async function getSessionUser(){
+  const {data,error}=await supabase.auth.getSession();
+  if(error) throw error;
+  return data.session?.user || null;
 }
-
-function emitAuth(event, user) {
-  listeners.forEach(cb => {
-    try { cb(event, user); } catch (err) { console.warn("Auth listener", err); }
-  });
+export function onAuth(callback){
+  return supabase.auth.onAuthStateChange((event,session)=>callback(event,session?.user||null));
 }
-
-export async function initSupabase() {
-  if (initPromise) return initPromise;
-  initPromise = (async () => {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    });
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      currentUser = session?.user || null;
-      setTimeout(() => emitAuth(event, currentUser), 0);
-    });
-
-    // Give detectSessionInUrl a moment to process OAuth redirects before
-    // deciding that there is no session and falling back to anonymous mode.
-    if (hasAuthCallbackInUrl()) {
-      for (let i = 0; i < 20; i++) {
-        const { data } = await supabase.auth.getSession();
-        if (data?.session?.user) {
-          currentUser = data.session.user;
-          history.replaceState({}, document.title, window.location.pathname);
-          emitAuth("INITIAL_SESSION", currentUser);
-          return currentUser;
-        }
-        await new Promise(r => setTimeout(r, 150));
-      }
-    }
-
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    if (data?.session?.user) {
-      currentUser = data.session.user;
-      emitAuth("INITIAL_SESSION", currentUser);
-      return currentUser;
-    }
-
-    // Local/offline-style use still works through an anonymous Supabase user,
-    // but only after we've made sure this isn't an OAuth callback.
-    const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
-    if (anonError) throw anonError;
-    currentUser = anonData.user;
-    emitAuth("INITIAL_SESSION", currentUser);
-    return currentUser;
-  })();
-  return initPromise;
-}
-
-export function listenAuth(callback) {
-  listeners.push(callback);
-  if (currentUser) setTimeout(() => callback("INITIAL_SESSION", currentUser), 0);
-}
-
-export async function getCurrentUser() {
-  await initSupabase();
-  const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  currentUser = data.user;
-  return currentUser;
-}
-
-export function isAnonymousUser(user) {
-  return !!user?.is_anonymous;
-}
-
-export async function signInWithGoogle() {
-  await initSupabase();
+export async function loginGoogle(){
   const redirectTo = `${window.location.origin}${window.location.pathname}`;
-  // If the current session is anonymous, end it first so Google OAuth signs
-  // into the permanent account instead of preserving the temporary context.
-  if (currentUser?.is_anonymous) {
-    await supabase.auth.signOut();
-    currentUser = null;
-  }
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo,
-      queryParams: { access_type: "offline", prompt: "select_account" }
-    }
+  const {error}=await supabase.auth.signInWithOAuth({
+    provider:"google",
+    options:{redirectTo}
   });
-  if (error) throw error;
+  if(error) throw error;
+}
+export async function logout(){
+  const {error}=await supabase.auth.signOut();
+  if(error) throw error;
+}
+export async function ensureProfile(user){
+  const meta=user.user_metadata||{};
+  const payload={
+    user_id:user.id,
+    email:user.email||"",
+    display_name:meta.full_name||meta.name||(user.email||"").split("@")[0],
+    avatar_url:meta.avatar_url||meta.picture||null,
+    updated_at:new Date().toISOString()
+  };
+  const {error}=await supabase.from("profiles").update(payload).eq("user_id",user.id);
+  if(error) throw error;
+}
+export async function getOwnProfile(userId){
+  const {data,error}=await supabase.from("profiles").select("*").eq("user_id",userId).single();
+  if(error) throw error;
   return data;
 }
-
-export async function signOutToAnonymous() {
-  await initSupabase();
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-  currentUser = null;
-  const { data, error: anonError } = await supabase.auth.signInAnonymously();
-  if (anonError) throw anonError;
-  currentUser = data.user;
-  emitAuth("SIGNED_IN", currentUser);
-  return currentUser;
+export async function updatePrivacy(userId,values){
+  const {error}=await supabase.from("profiles").update({
+    watches_collection_visibility:values.collection,
+    watches_builds_visibility:values.build,
+    watches_wishlist_visibility:values.wishlist,
+    updated_at:new Date().toISOString()
+  }).eq("user_id",userId);
+  if(error) throw error;
 }
-
-function rowToItem(r) {
-  return {
-    id: r.id,
-    status: r.status,
-    wishlistType: r.wishlist_type || "",
-    brand: r.brand || "",
-    model: r.model || "",
-    reference: r.reference || "",
-    movement: r.movement || "",
-    diameter: r.diameter ?? "",
-    year: r.year ?? "",
-    purchasePrice: r.purchase_price ?? "",
-    imageStoragePath: r.image_storage_path || "",
-    link: r.link || "",
-    casePart: r.case_part || "",
-    dialPart: r.dial_part || "",
-    handsPart: r.hands_part || "",
-    strapPart: r.strap_part || "",
-    notes: r.notes || "",
-    updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : Date.now()
-  };
+export async function searchProfiles(term){
+  const {data,error}=await supabase.rpc("search_b612_profiles",{search_term:term});
+  if(error) throw error;
+  return data||[];
 }
-function itemToRow(item, userId) {
-  return {
-    id: item.id,
-    user_id: userId,
-    status: item.status,
-    wishlist_type: item.wishlistType || null,
-    brand: item.brand || null,
-    model: item.model || null,
-    reference: item.reference || null,
-    movement: item.movement || null,
-    diameter: item.diameter === "" ? null : item.diameter,
-    year: item.year === "" ? null : item.year,
-    purchase_price: item.purchasePrice === "" ? null : item.purchasePrice,
-    current_value: null,
-    image_storage_path: item.imageStoragePath || null,
-    link: item.link || null,
-    case_part: item.casePart || null,
-    dial_part: item.dialPart || null,
-    hands_part: item.handsPart || null,
-    strap_part: item.strapPart || null,
-    notes: item.notes || null,
-    updated_at: new Date(item.updatedAt || Date.now()).toISOString()
-  };
+export async function relatedProfile(userId){
+  const {data,error}=await supabase.rpc("get_b612_related_profile",{target_user:userId});
+  if(error) throw error;
+  return data?.[0]||null;
 }
-
-export async function syncWithCloud(localItems) {
-  await initSupabase();
-  const user = await getCurrentUser();
-  const { data: rows, error } = await supabase.from("watches").select("*").order("updated_at", { ascending: false });
-  if (error) throw error;
-  const cloudItems = (rows || []).map(rowToItem);
-  const cloudMap = new Map(cloudItems.map(item => [item.id, item]));
-  const merged = new Map(cloudItems.map(item => [item.id, item]));
-  const toUpsert = [];
-  for (const item of localItems || []) {
-    const cloud = cloudMap.get(item.id);
-    if (!cloud || (item.updatedAt || 0) > (cloud.updatedAt || 0)) {
-      merged.set(item.id, item);
-      toUpsert.push(itemToRow(item, user.id));
-    }
-  }
-  if (toUpsert.length) {
-    const { error: upsertError } = await supabase.from("watches").upsert(toUpsert, { onConflict: "id" });
-    if (upsertError) throw upsertError;
-  }
-  return Array.from(merged.values()).sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+export async function friendProfile(userId){
+  const {data,error}=await supabase.rpc("get_b612_profile",{target_user:userId});
+  if(error) throw error;
+  return data?.[0]||null;
 }
-export async function upsertWatch(item) {
-  await initSupabase();
-  const user = await getCurrentUser();
-  const { error } = await supabase.from("watches").upsert(itemToRow(item, user.id), { onConflict: "id" });
-  if (error) throw error;
+export async function getFriendships(userId){
+  const {data,error}=await supabase.from("friendships").select("*")
+    .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
+    .order("created_at",{ascending:false});
+  if(error) throw error;
+  return data||[];
 }
-export async function deleteWatchRecord(id) {
-  await initSupabase();
-  const { error } = await supabase.from("watches").delete().eq("id", id);
-  if (error) throw error;
-}
-
-async function compressImage(file, maxDimension = 1600, quality = 0.82) {
-  const bitmap = await createImageBitmap(file);
-  const ratio = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-  const width = Math.max(1, Math.round(bitmap.width * ratio));
-  const height = Math.max(1, Math.round(bitmap.height * ratio));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  canvas.getContext("2d").drawImage(bitmap, 0, 0, width, height);
-  return await new Promise((resolve, reject) => {
-    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Falha ao comprimir imagem.")), "image/jpeg", quality);
+export async function sendFriendRequest(targetUserId,userId){
+  const {error}=await supabase.from("friendships").insert({
+    requester_id:userId,addressee_id:targetUserId,status:"pending"
   });
+  if(error) throw error;
 }
-
-export async function uploadWatchPhoto(file, watchId, onStatus = () => {}) {
-  await initSupabase();
-  const user = await getCurrentUser();
-  onStatus("A preparar foto…");
-  const blob = await compressImage(file);
-  const filePath = `${user.id}/${watchId}/${Date.now()}.jpg`;
-  onStatus("A enviar para Supabase…");
-  const { error } = await supabase.storage.from(SUPABASE_BUCKET).upload(filePath, blob, {
-    contentType: "image/jpeg",
-    cacheControl: "3600",
-    upsert: false
-  });
-  if (error) throw error;
-  return { storagePath: filePath };
+export async function acceptFriendRequest(id){
+  const {error}=await supabase.from("friendships").update({status:"accepted",updated_at:new Date().toISOString()}).eq("id",id);
+  if(error) throw error;
 }
-export async function getWatchPhotoUrl(storagePath, expiresIn = 3600) {
-  if (!storagePath) return "";
-  await initSupabase();
-  const { data, error } = await supabase.storage.from(SUPABASE_BUCKET).createSignedUrl(storagePath, expiresIn);
-  if (error) throw error;
-  return data?.signedUrl || "";
+export async function removeFriendship(id){
+  const {error}=await supabase.from("friendships").delete().eq("id",id);
+  if(error) throw error;
 }
-export async function deleteWatchPhoto(storagePath) {
-  if (!storagePath) return;
-  await initSupabase();
-  const { error } = await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
-  if (error) throw error;
+export async function loadWatches(ownerId=null){
+  let q=supabase.from("watches").select("*").order("updated_at",{ascending:false});
+  if(ownerId) q=q.eq("user_id",ownerId);
+  const {data,error}=await q;
+  if(error) throw error;
+  return (data||[]).map(rowToItem);
+}
+export async function saveWatch(item,userId){
+  const {error}=await supabase.from("watches").upsert(itemToRow(item,userId),{onConflict:"id"});
+  if(error) throw error;
+}
+export async function deleteWatch(id){
+  const {error}=await supabase.from("watches").delete().eq("id",id);
+  if(error) throw error;
+}
+export async function signedPhoto(path,expires=3600){
+  if(!path) return "";
+  const {data,error}=await supabase.storage.from(BUCKET).createSignedUrl(path,expires);
+  if(error) throw error;
+  return data?.signedUrl||"";
+}
+export async function uploadPhoto(file,watchId,userId){
+  const blob=await compressImage(file);
+  const path=`${userId}/${watchId}/${Date.now()}.jpg`;
+  const {error}=await supabase.storage.from(BUCKET).upload(path,blob,{contentType:"image/jpeg",cacheControl:"3600"});
+  if(error) throw error;
+  return path;
+}
+export async function deletePhoto(path){
+  if(!path) return;
+  const {error}=await supabase.storage.from(BUCKET).remove([path]);
+  if(error) throw error;
+}
+function rowToItem(r){return{
+  id:r.id,status:r.status,wishlistType:r.wishlist_type||"watch",brand:r.brand||"",model:r.model||"",
+  reference:r.reference||"",movement:r.movement||"",diameter:r.diameter??"",year:r.year??"",
+  purchasePrice:r.purchase_price??"",imageStoragePath:r.image_storage_path||"",link:r.link||"",
+  casePart:r.case_part||"",dialPart:r.dial_part||"",handsPart:r.hands_part||"",strapPart:r.strap_part||"",
+  notes:r.notes||"",updatedAt:r.updated_at?new Date(r.updated_at).getTime():Date.now(),userId:r.user_id
+}}
+function itemToRow(i,userId){return{
+  id:i.id,user_id:userId,status:i.status,wishlist_type:i.wishlistType||null,brand:i.brand||null,model:i.model||null,
+  reference:i.reference||null,movement:i.movement||null,diameter:i.diameter===""?null:i.diameter,
+  year:i.year===""?null:i.year,purchase_price:i.purchasePrice===""?null:i.purchasePrice,current_value:null,
+  image_storage_path:i.imageStoragePath||null,link:i.link||null,case_part:i.casePart||null,dial_part:i.dialPart||null,
+  hands_part:i.handsPart||null,strap_part:i.strapPart||null,notes:i.notes||null,
+  updated_at:new Date(i.updatedAt||Date.now()).toISOString()
+}}
+async function compressImage(file,max=1600,quality=.82){
+  const bmp=await createImageBitmap(file);const ratio=Math.min(1,max/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas");c.width=Math.round(bmp.width*ratio);c.height=Math.round(bmp.height*ratio);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  return await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("Falha ao comprimir imagem")),"image/jpeg",quality));
 }
