@@ -1,18 +1,27 @@
-import { loginGoogle } from "./supabase.js";
-
 const APP_URL = "https://vitormiguelrodrigues79-ui.github.io/B612-vault/";
+const SUPABASE_AUTH_URL = "https://boyhtywhuumbayejfbse.supabase.co/auth/v1/authorize";
+const VERSION = "B612-Vault v6.2.2";
 
-function wireLogin(){
-  const btn=document.getElementById("googleLoginBtn");
+function googleAuthUrl(){
+  const u = new URL(SUPABASE_AUTH_URL);
+  u.searchParams.set("provider", "google");
+  u.searchParams.set("redirect_to", APP_URL);
+  return u.toString();
+}
+
+function wireDirectGoogleLogin(){
+  const btn = document.getElementById("googleLoginBtn");
   if(!btn) return;
-  btn.onclick=async()=>{
-    try{
-      await loginGoogle();
-    }catch(e){
-      console.error("Google login error",e);
-      alert(e?.message || "Não foi possível iniciar sessão com Google.");
-    }
+  btn.onclick = () => {
+    window.location.assign(googleAuthUrl());
   };
+}
+
+function fixProductionBranding(){
+  document.title = "B612-Vault";
+  document.querySelectorAll(".staging-pill").forEach(el=>el.textContent="B612 · V6.2.2");
+  const version = document.getElementById("versionInfo");
+  if(version) version.textContent = VERSION;
 }
 
 async function shareApp(){
@@ -26,35 +35,26 @@ async function shareApp(){
     await navigator.clipboard.writeText(APP_URL);
     alert("Link da B612-Vault copiado.");
   }catch(err){
-    if(err?.name!=="AbortError"){
-      try{
-        await navigator.clipboard.writeText(APP_URL);
-        alert("Link da B612-Vault copiado.");
-      }catch{
-        prompt("Copia este link para partilhar a B612-Vault:",APP_URL);
-      }
+    if(err?.name !== "AbortError"){
+      try{ await navigator.clipboard.writeText(APP_URL); alert("Link da B612-Vault copiado."); }
+      catch{ prompt("Copia este link para partilhar a B612-Vault:",APP_URL); }
     }
   }
 }
 
-function ensureShareButton(){
-  const grid=document.querySelector("#friendsView .social-grid");
-  if(!grid || document.getElementById("shareAppPanel")) return;
-  const panel=document.createElement("section");
-  panel.id="shareAppPanel";
-  panel.className="panel span-2";
-  panel.innerHTML=`<div class="eyebrow">PARTILHAR B612-VAULT</div><h3>Convida um amigo</h3><p class="muted">Envia o link da aplicação. Cada pessoa entra com a sua própria conta Google e mantém a sua coleção separada.</p><button id="shareAppBtn" class="primary-btn full" type="button">Partilhar aplicação</button>`;
-  grid.appendChild(panel);
-  document.getElementById("shareAppBtn").addEventListener("click",shareApp);
+function wireShare(){
+  const btn=document.getElementById("shareAppBtn");
+  if(btn) btn.onclick=shareApp;
 }
 
-wireLogin();
-ensureShareButton();
+wireDirectGoogleLogin();
+fixProductionBranding();
+wireShare();
 
 import("./prod-core.js").then(()=>{
-  wireLogin();
-  ensureShareButton();
+  fixProductionBranding();
+  wireDirectGoogleLogin();
+  wireShare();
 }).catch(err=>{
-  console.error("B612 production bootstrap error",err);
-  wireLogin();
+  console.error("B612 production core failed to load",err);
 });
