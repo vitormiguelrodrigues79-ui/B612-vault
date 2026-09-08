@@ -1,0 +1,13 @@
+{
+  "name": "Oud d’Haenir · TESTE",
+  "short_name": "Oud d’Haenir",
+  "description": "Private scent library",
+  "start_url": "./?invite=1",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#11110f",
+  "theme_color": "#11110f",
+  "icons": [
+    {"src":"../perfume/oud-haenir-apple-touch-icon.png","sizes":"180x180","type":"image/png","purpose":"any"}
+  ]
+}
