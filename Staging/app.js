@@ -5,7 +5,7 @@ import {
   signedPhoto,uploadPhoto,deletePhoto
 } from "./supabase.js";
 
-const VERSION="B612-Vault v6.1 STAGING";
+const VERSION="B612-Vault v6.2 STAGING";
 const views=["homeView","categoryView","friendsView","friendProfileView","accountView"];
 const state={user:null,profile:null,watches:[],friendships:[],friends:[],category:"collection",friendTarget:null,friendCategory:"collection",friendWatches:[],search:"",sort:"updated"};
 let pendingPhoto=null, removeExistingPhoto=false;
@@ -28,7 +28,8 @@ async function boot(){
 }
 function wire(){
   $("googleLoginBtn").onclick=()=>loginGoogle().catch(e=>alert(e.message));
-  $("logoutBtn").onclick=()=>logout().catch(e=>alert(e.message));
+  $("logoutBtn").onclick=confirmLogout;
+  $("quickLogoutBtn").onclick=confirmLogout;
   $("syncBtn").onclick=syncAll;$("accountSyncBtn").onclick=syncAll;
   $("accountBtn").onclick=()=>showView("accountView");
   $("addBtn").onclick=()=>openWatch();$("categoryAddBtn").onclick=()=>openWatch();
@@ -50,6 +51,18 @@ function wire(){
   $("removePhotoBtn").onclick=()=>{pendingPhoto=null;removeExistingPhoto=true;$("photoPreview").classList.add("hidden");$("removePhotoBtn").classList.add("hidden");$("photoStatus").textContent="Foto será removida ao guardar."};
   $("deleteWatchBtn").onclick=deleteCurrentWatch;
 }
+
+async function confirmLogout(){
+  const ok=window.confirm("Queres mesmo terminar a sessão?");
+  if(!ok) return;
+  try{
+    await logout();
+    showLogin();
+  }catch(e){
+    alert(e.message||"Não foi possível terminar a sessão.");
+  }
+}
+
 function showLogin(){
   state.user=null;state.profile=null;state.watches=[];
   $("appShell").classList.add("hidden");$("loginGate").classList.remove("hidden");
