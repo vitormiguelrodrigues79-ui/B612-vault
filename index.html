@@ -20,7 +20,7 @@
       <div class="eyebrow">PRIVATE WATCH COMMUNITY</div>
       <h1>B612-Vault</h1>
       <p>As tuas coleções, builds e wishlist. Agora também com amigos e privacidade controlada.</p>
-      <button id="googleLoginBtn" class="google-btn" type="button"><span class="google-g">G</span>Entrar com Google</button>
+      <a id="googleLoginBtn" class="google-btn" href="https://boyhtywhuumbayejfbse.supabase.co/auth/v1/authorize?provider=google&redirect_to=https%3A%2F%2Fvitormiguelrodrigues79-ui.github.io%2FB612-vault%2F" style="text-decoration:none"><span class="google-g">G</span>Entrar com Google</a>
       <small>Não existe login anónimo nesta versão.</small>
     </div>
   </section>
@@ -60,11 +60,6 @@
 
   <dialog id="watchDialog"><form id="watchForm" method="dialog"><div class="dialog-head"><div><div class="eyebrow">WATCH PROFILE</div><h2 id="watchDialogTitle">Novo relógio</h2></div><button type="button" id="closeWatchDialog" class="icon-btn">×</button></div><input id="watchId" type="hidden" /><input id="imageStoragePath" type="hidden" /><div class="form-grid"><label>Categoria<select id="status"><option value="collection">Coleção</option><option value="build">Build</option><option value="wishlist">Wishlist</option></select></label><label id="wishlistTypeWrap" class="hidden">Tipo Wishlist<select id="wishlistType"><option value="watch">Relógio</option><option value="brand">Marca</option></select></label><label>Marca<input id="brand"></label><label>Modelo / nome<input id="model"></label><label>Referência<input id="reference"></label><label>Movimento<input id="movement"></label><label>Diâmetro (mm)<input id="diameter" type="number" step="0.1"></label><label>Ano<input id="year" type="number"></label><label>Custo aquisição (€)<input id="purchasePrice" type="number" step="0.01"></label><label class="span-2">Link<input id="link"></label><label>Caixa<input id="casePart"></label><label>Dial<input id="dialPart"></label><label>Ponteiros<input id="handsPart"></label><label>Bracelete / Strap<input id="strapPart"></label><label class="span-2">Notas<textarea id="notes" rows="4"></textarea></label><div class="span-2 photo-box"><img id="photoPreview" class="photo-preview hidden" alt=""><label class="primary-btn file-label">Adicionar foto<input id="photoInput" type="file" accept="image/*" hidden></label><button type="button" id="removePhotoBtn" class="ghost-btn hidden">Remover foto</button><small id="photoStatus">Sem alterações à fotografia.</small></div></div><div class="form-actions"><button type="button" id="deleteWatchBtn" class="danger-btn hidden">Eliminar</button><div><button type="button" id="cancelWatchBtn" class="ghost-btn">Cancelar</button><button type="submit" class="primary-btn">Guardar</button></div></div></form></dialog>
 
-  <script type="module">
-    import { loginGoogle } from './supabase.js';
-    const btn=document.getElementById('googleLoginBtn');
-    if(btn) btn.addEventListener('click',()=>loginGoogle().catch(e=>alert(e.message||'Falha no login Google')));
-  </script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
