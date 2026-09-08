@@ -1,12 +1,11 @@
-# B612-Vault v5.2
+# B612-Vault
 
-Atualização de autenticação:
-- Login principal com Google OAuth
-- Magic Link removido da interface normal
-- sessão persistente
-- sincronização automática após login
-- proteção contra criação anónima durante callback OAuth
-- estado do utilizador Google na página Cloud
-- Log off mantido
+Versão de produção: v6.2
 
-Atualizado: 16/08/2026 · 18:40
+Inclui login Google obrigatório, coleções por utilizador, amigos, privacidade por categoria e partilha da aplicação.
+
+Produção:
+https://vitormiguelrodrigues79-ui.github.io/B612-vault/
+
+Staging:
+https://vitormiguelrodrigues79-ui.github.io/B612-vault/Staging/
