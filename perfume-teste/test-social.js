@@ -72,6 +72,9 @@ function setFriendMsg(text){const el=document.getElementById('friendMsg');if(el)
 
 async function loadPrivacy(){
   const inputs=[...document.querySelectorAll('[data-sharing-category]')];if(!inputs.length)return;
+  const user=await sessionUser();
+  if(!user){inputs.forEach(input=>{input.disabled=true;});return;}
+  inputs.forEach(input=>{input.disabled=false;});
   try{
     const {data,error}=await supabase.rpc('my_perfume_sharing');if(error)throw error;
     const settings=Array.isArray(data)?data[0]:data;if(!settings)return;
