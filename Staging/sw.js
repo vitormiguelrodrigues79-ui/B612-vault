@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b612-vault-staging-v6-3';
+const CACHE_NAME = 'b612-vault-staging-v6-3a';
 const APP_SHELL = [
   './',
   './index.html',
