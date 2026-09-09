@@ -50,8 +50,8 @@ function ensureStyles(){
   s.textContent=`
     .friends-test-tab{border:0;background:transparent;color:inherit;padding:10px 12px;border-radius:12px;font:inherit;cursor:pointer}
     .friends-test-tab.active{background:var(--ink);color:var(--bg)}
-    #friendsTestPanel{margin:18px 0;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
-    #friendsTestPanel h3{margin:0 0 8px}#friendsTestPanel p{color:var(--muted);line-height:1.5}
+    #friendsTestPanel,#suppliersTestPanel{margin:18px 0;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+    #friendsTestPanel h3,#suppliersTestPanel h3{margin:0 0 8px}#friendsTestPanel p,#suppliersTestPanel p{color:var(--muted);line-height:1.5}
     #sharePerfumeBtn{border:1px solid var(--line);background:transparent;font-weight:750}
     .friend-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin:16px 0}.friend-add input{min-width:0}
     .friends-list{display:grid;gap:10px;margin-top:14px}.friend-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
@@ -63,6 +63,8 @@ function ensureStyles(){
     .share-category-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 13px}.share-category-tabs button{padding:7px 10px}.share-category-tabs button.active{background:var(--ink);color:var(--bg)}
     .friend-fav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.friend-fav-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
     .friend-fav-card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#eee}.friend-fav-card .body{padding:12px}.friend-fav-card h5{margin:0 0 3px;font-size:.95rem}.friend-fav-card p{margin:4px 0 0!important;font-size:.78rem}.friend-fav-card .score{display:inline-block;margin-top:8px;font-weight:800;font-size:.78rem}
+    .supplier-form{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(220px,1.3fr) auto auto;gap:10px;margin:18px 0}.supplier-form input{min-width:0;padding:11px 13px}.supplier-form button{padding:10px 14px}.supplier-list{display:grid;gap:10px}.supplier-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px}.supplier-main{min-width:0}.supplier-main strong{display:block}.supplier-main a{display:block;margin-top:4px;color:var(--accent);font-size:.82rem;overflow-wrap:anywhere}.supplier-shared-card{padding:14px}.supplier-shared-card a{color:var(--accent);overflow-wrap:anywhere}.supplier-msg{min-height:20px;color:var(--muted);font-size:.82rem}
+    @media(max-width:700px){.supplier-form{grid-template-columns:1fr}.supplier-row{align-items:flex-start;flex-direction:column}.supplier-row .friend-actions{width:100%}}
     @media(max-width:560px){.friend-add{grid-template-columns:1fr}.friend-row{align-items:flex-start;flex-direction:column}.friend-actions{width:100%}.friend-actions button{flex:1}}
   `;
   document.head.appendChild(s);
@@ -82,15 +84,16 @@ function ensureFriends(){
       <label class="privacy-box"><span class="privacy-copy"><strong>Favoritos</strong><small>Partilhar os perfumes marcados como favoritos</small></span><input class="privacy-toggle" type="checkbox" data-sharing-category="favorites"></label>
       <label class="privacy-box"><span class="privacy-copy"><strong>Tenho</strong><small>Partilhar os frascos da tua coleção</small></span><input class="privacy-toggle" type="checkbox" data-sharing-category="collection"></label>
       <label class="privacy-box"><span class="privacy-copy"><strong>Decants</strong><small>Partilhar os teus decants</small></span><input class="privacy-toggle" type="checkbox" data-sharing-category="decants"></label>
+      <label class="privacy-box"><span class="privacy-copy"><strong>Fornecedores</strong><small>Partilhar a tua lista de fornecedores preferenciais</small></span><input class="privacy-toggle" type="checkbox" data-sharing-category="suppliers"></label>
     </div>
     <div class="friend-add"><input id="friendEmail" type="email" autocomplete="email" placeholder="email@gmail.com"><button id="addFriendBtn" type="button" class="primary">Adicionar</button></div>
     <div id="friendMsg"></div>
     <div id="friendsList" class="friends-list"></div>
-    <div id="friendSharedView" class="hidden"><div class="friend-fav-head"><h4 id="friendSharedTitle">Partilhas</h4><button id="closeFriendShared" type="button">Fechar</button></div><div class="share-category-tabs"><button type="button" data-share-view="favorites">Favoritos</button><button type="button" data-share-view="collection">Tenho</button><button type="button" data-share-view="decants">Decants</button></div><div id="friendSharedGrid" class="friend-fav-grid"></div></div>`;
+    <div id="friendSharedView" class="hidden"><div class="friend-fav-head"><h4 id="friendSharedTitle">Partilhas</h4><button id="closeFriendShared" type="button">Fechar</button></div><div class="share-category-tabs"><button type="button" data-share-view="favorites">Favoritos</button><button type="button" data-share-view="collection">Tenho</button><button type="button" data-share-view="decants">Decants</button><button type="button" data-share-view="suppliers">Fornecedores</button></div><div id="friendSharedGrid" class="friend-fav-grid"></div></div>`;
   grid?.parentNode?.insertBefore(panel,grid);
 
   btn.addEventListener('click',async()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');grid?.classList.add('hidden');empty?.classList.add('hidden');panel.classList.remove('hidden');
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById('suppliersTestBtn')?.classList.remove('active');btn.classList.add('active');grid?.classList.add('hidden');empty?.classList.add('hidden');document.getElementById('suppliersTestPanel')?.classList.add('hidden');panel.classList.remove('hidden');
     await Promise.all([loadFriends(),loadPrivacy()]);
   });
   document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{btn.classList.remove('active');panel.classList.add('hidden');grid?.classList.remove('hidden');}));
@@ -110,14 +113,15 @@ async function loadPrivacy(){
   if(!user){inputs.forEach(input=>{input.disabled=true;});return;}
   inputs.forEach(input=>{input.disabled=false;});
   try{
-    const {data,error}=await supabase.rpc('my_perfume_sharing');if(error)throw error;
-    const settings=Array.isArray(data)?data[0]:data;if(!settings)return;
-    inputs.forEach(input=>{input.checked=!!settings[input.dataset.sharingCategory];});
+    const [{data,error},{data:supplierSharing,error:supplierError}]=await Promise.all([supabase.rpc('my_perfume_sharing'),supabase.rpc('my_supplier_sharing')]);
+    if(error)throw error;if(supplierError)throw supplierError;
+    const settings=Array.isArray(data)?data[0]:data;
+    inputs.forEach(input=>{input.checked=input.dataset.sharingCategory==='suppliers'?!!supplierSharing:!!settings?.[input.dataset.sharingCategory];});
   }catch(err){console.warn('privacy load',err);setFriendMsg('Não foi possível carregar as definições de partilha.');}
 }
 async function savePrivacy(e){
   const input=e.currentTarget,category=input.dataset.sharingCategory,enabled=input.checked;input.disabled=true;setFriendMsg('A guardar privacidade…');
-  try{const {error}=await supabase.rpc('set_perfume_sharing',{target_category:category,new_enabled:enabled});if(error)throw error;setFriendMsg(`${sharingLabels[category]}: partilha ${enabled?'ligada':'desligada'}.`);}
+  try{const {error}=category==='suppliers'?await supabase.rpc('set_supplier_sharing',{new_enabled:enabled}):await supabase.rpc('set_perfume_sharing',{target_category:category,new_enabled:enabled});if(error)throw error;setFriendMsg(`${sharingLabels[category]}: partilha ${enabled?'ligada':'desligada'}.`);}
   catch(err){input.checked=!enabled;console.warn('privacy save',err);setFriendMsg('Não foi possível guardar a privacidade.');}
   finally{input.disabled=false;}
 }
@@ -157,7 +161,7 @@ async function loadFriends(){
   }catch(err){console.warn('friends load',err);host.innerHTML='<small>Não foi possível carregar os amigos.</small>';}
 }
 
-const sharingLabels={favorites:'Favoritos',collection:'Tenho',decants:'Decants'};
+const sharingLabels={favorites:'Favoritos',collection:'Tenho',decants:'Decants',suppliers:'Fornecedores'};
 const friendShareState={userId:null,name:'',category:'favorites'};
 async function loadFriendShares(userId,name,category='favorites'){
   const view=document.getElementById('friendSharedView'),host=document.getElementById('friendSharedGrid'),title=document.getElementById('friendSharedTitle');
@@ -167,10 +171,10 @@ async function loadFriendShares(userId,name,category='favorites'){
   document.querySelectorAll('[data-share-view]').forEach(button=>button.classList.toggle('active',button.dataset.shareView===category));
   host.innerHTML=`<small>A carregar ${sharingLabels[category].toLowerCase()}…</small>`;view.scrollIntoView({behavior:'smooth',block:'nearest'});
   try{
-    const {data,error}=await supabase.rpc('friend_shared_perfumes',{target_user_id:userId,target_category:category});if(error)throw error;const rows=Array.isArray(data)?data:[];
+    const {data,error}=category==='suppliers'?await supabase.rpc('friend_shared_suppliers',{target_user_id:userId}):await supabase.rpc('friend_shared_perfumes',{target_user_id:userId,target_category:category});if(error)throw error;const rows=Array.isArray(data)?data:[];
     if(friendShareState.userId!==userId||friendShareState.category!==category)return;
     if(!rows.length){host.innerHTML=`<small>Este amigo não está a partilhar ${sharingLabels[category].toLowerCase()} ou ainda não tem itens nesta categoria.</small>`;return;}
-    host.innerHTML=rows.map(p=>`<article class="friend-fav-card">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`:''}<div class="body"><h5>${esc(p.brand||'')} ${esc(p.name||'')}</h5>${p.concentration?`<p>${esc(p.concentration)}</p>`:''}${p.profile?`<p>${esc(p.profile)}</p>`:''}${p.inspiration_name?`<p>Similar: ${esc(p.inspiration_name)}${p.inspiration_house?` · ${esc(p.inspiration_house)}`:''}</p>`:''}${p.overall_score!==null&&p.overall_score!==undefined?`<span class="score">★ ${Number(p.overall_score).toFixed(1)}/10</span>`:''}</div></article>`).join('');
+    host.innerHTML=category==='suppliers'?rows.map(s=>`<article class="friend-fav-card supplier-shared-card"><h5>${esc(s.name)}</h5><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.url)}</a></article>`).join(''):rows.map(p=>`<article class="friend-fav-card">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`:''}<div class="body"><h5>${esc(p.brand||'')} ${esc(p.name||'')}</h5>${p.concentration?`<p>${esc(p.concentration)}</p>`:''}${p.profile?`<p>${esc(p.profile)}</p>`:''}${p.inspiration_name?`<p>Similar: ${esc(p.inspiration_name)}${p.inspiration_house?` · ${esc(p.inspiration_house)}`:''}</p>`:''}${p.overall_score!==null&&p.overall_score!==undefined?`<span class="score">★ ${Number(p.overall_score).toFixed(1)}/10</span>`:''}</div></article>`).join('');
   }catch(err){console.warn('friend shares',err);host.innerHTML='<small>Não foi possível carregar as partilhas deste amigo.</small>';}
 }
 
@@ -184,9 +188,79 @@ async function removeFriend(id){
   catch(err){console.warn('friend remove',err);setFriendMsg('Não foi possível remover a amizade.');}
 }
 
+function ensureSuppliers(){
+  if(!tabs||document.getElementById('suppliersTestBtn'))return;
+  const btn=document.createElement('button');btn.type='button';btn.id='suppliersTestBtn';btn.className='friends-test-tab';btn.textContent='Fornecedores';tabs.appendChild(btn);
+  const panel=document.createElement('section');panel.id='suppliersTestPanel';panel.className='hidden';panel.innerHTML=`
+    <h3>Fornecedores preferenciais</h3>
+    <p>Guarda as lojas e fornecedores em que confias. Só precisas do nome e do respetivo endereço.</p>
+    <form id="supplierForm" class="supplier-form">
+      <input id="supplierId" type="hidden">
+      <input id="supplierName" maxlength="120" required placeholder="Nome do fornecedor" aria-label="Nome do fornecedor">
+      <input id="supplierUrl" inputmode="url" required placeholder="https://exemplo.pt" aria-label="URL do fornecedor">
+      <button id="cancelSupplierEdit" type="button" class="hidden">Cancelar</button>
+      <button id="saveSupplierBtn" type="submit" class="primary">Adicionar</button>
+    </form>
+    <div id="supplierMsg" class="supplier-msg"></div>
+    <div id="supplierList" class="supplier-list"></div>`;
+  grid?.parentNode?.insertBefore(panel,grid);
+
+  btn.addEventListener('click',async()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById('friendsTestBtn')?.classList.remove('active');btn.classList.add('active');
+    grid?.classList.add('hidden');empty?.classList.add('hidden');document.getElementById('friendsTestPanel')?.classList.add('hidden');panel.classList.remove('hidden');await loadSuppliers();
+  });
+  document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{btn.classList.remove('active');panel.classList.add('hidden');}));
+  document.getElementById('supplierForm')?.addEventListener('submit',saveSupplier);
+  document.getElementById('cancelSupplierEdit')?.addEventListener('click',resetSupplierForm);
+}
+
+function setSupplierMsg(text){const el=document.getElementById('supplierMsg');if(el)el.textContent=text||'';}
+function normalizeSupplierUrl(value){
+  const candidate=/^https?:\/\//i.test(value)?value:`https://${value}`;
+  try{const parsed=new URL(candidate);return ['http:','https:'].includes(parsed.protocol)&&parsed.hostname?parsed.href:'';}catch{return '';}
+}
+function resetSupplierForm(){
+  const form=document.getElementById('supplierForm');form?.reset();
+  const id=document.getElementById('supplierId');if(id)id.value='';
+  document.getElementById('cancelSupplierEdit')?.classList.add('hidden');
+  const save=document.getElementById('saveSupplierBtn');if(save)save.textContent='Adicionar';
+}
+async function loadSuppliers(){
+  const host=document.getElementById('supplierList');if(!host)return;
+  const user=await sessionUser();if(!user){host.innerHTML='<small>Entra com Google para gerir os fornecedores.</small>';return;}
+  host.innerHTML='<small>A carregar…</small>';
+  try{
+    const {data,error}=await supabase.from('preferred_suppliers').select('id,name,url').eq('user_id',user.id).order('name',{ascending:true});if(error)throw error;const rows=Array.isArray(data)?data:[];
+    if(!rows.length){host.innerHTML='<small>Ainda não adicionaste fornecedores preferenciais.</small>';return;}
+    host.innerHTML=rows.map(s=>`<article class="supplier-row"><div class="supplier-main"><strong>${esc(s.name)}</strong><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.url)}</a></div><div class="friend-actions"><button type="button" data-edit-supplier="${s.id}">Editar</button><button type="button" data-delete-supplier="${s.id}">Apagar</button></div></article>`).join('');
+    host.querySelectorAll('[data-edit-supplier]').forEach(button=>button.addEventListener('click',()=>editSupplier(rows.find(s=>s.id===button.dataset.editSupplier))));
+    host.querySelectorAll('[data-delete-supplier]').forEach(button=>button.addEventListener('click',()=>deleteSupplier(button.dataset.deleteSupplier)));
+  }catch(err){console.warn('suppliers load',err);host.innerHTML='<small>Não foi possível carregar os fornecedores.</small>';}
+}
+function editSupplier(supplier){
+  if(!supplier)return;document.getElementById('supplierId').value=supplier.id;document.getElementById('supplierName').value=supplier.name;document.getElementById('supplierUrl').value=supplier.url;
+  document.getElementById('cancelSupplierEdit')?.classList.remove('hidden');document.getElementById('saveSupplierBtn').textContent='Guardar';document.getElementById('supplierName')?.focus();
+}
+async function saveSupplier(e){
+  e.preventDefault();const user=await sessionUser();if(!user){setSupplierMsg('Faz login com Google para guardar.');return;}
+  const id=document.getElementById('supplierId')?.value||'',name=document.getElementById('supplierName')?.value.trim()||'',url=normalizeSupplierUrl(document.getElementById('supplierUrl')?.value.trim()||'');
+  if(!name||!url){setSupplierMsg('Indica um nome e um endereço válido.');return;}
+  const button=document.getElementById('saveSupplierBtn');button.disabled=true;setSupplierMsg('A guardar…');
+  try{
+    const query=id?supabase.from('preferred_suppliers').update({name,url,updated_at:new Date().toISOString()}).eq('id',id).eq('user_id',user.id):supabase.from('preferred_suppliers').insert({user_id:user.id,name,url});
+    const {error}=await query;if(error)throw error;setSupplierMsg(id?'Fornecedor atualizado.':'Fornecedor adicionado.');resetSupplierForm();await loadSuppliers();
+  }catch(err){console.warn('supplier save',err);setSupplierMsg('Não foi possível guardar o fornecedor.');}
+  finally{button.disabled=false;}
+}
+async function deleteSupplier(id){
+  if(!confirm('Apagar este fornecedor da lista?'))return;const user=await sessionUser();if(!user)return;setSupplierMsg('A apagar…');
+  try{const {error}=await supabase.from('preferred_suppliers').delete().eq('id',id).eq('user_id',user.id);if(error)throw error;setSupplierMsg('Fornecedor apagado.');resetSupplierForm();await loadSuppliers();}
+  catch(err){console.warn('supplier delete',err);setSupplierMsg('Não foi possível apagar o fornecedor.');}
+}
+
 function currentPerfume(){const id=document.getElementById('perfumeId')?.value||'',brand=document.getElementById('brand')?.value?.trim()||'',name=document.getElementById('name')?.value?.trim()||'',concentration=document.getElementById('concentration')?.value?.trim()||'',score=document.getElementById('overallScore')?.value||'',profile=document.getElementById('profile')?.value?.trim()||'';return{id,brand,name,concentration,score,profile};}
 function shareText(p){const title=[p.brand,p.name].filter(Boolean).join(' — ');const lines=[title,p.concentration,p.profile,p.score?`Nota: ${p.score}/10`:'' ].filter(Boolean);return `${lines.join('\n')}\n\nPartilhado através do Oud d’Haenir.`;}
 async function shareCurrent(){const p=currentPerfume();if(!p.name){alert('Abre primeiro uma ficha de perfume para partilhar.');return;}const text=shareText(p);const url=location.origin+location.pathname.replace('/perfume-teste/','/perfume/');try{if(navigator.share){await navigator.share({title:`${p.brand} ${p.name}`.trim(),text,url});}else{await navigator.clipboard.writeText(`${text}\n${url}`);alert('Ficha copiada. Já podes colar no WhatsApp ou email.');}}catch(err){if(err?.name!=='AbortError')console.warn('share',err);}}
 function ensureShare(){if(!form||document.getElementById('sharePerfumeBtn'))return;const actions=form.querySelector('.dialog-actions');if(!actions)return;const btn=document.createElement('button');btn.type='button';btn.id='sharePerfumeBtn';btn.textContent='Partilhar';btn.className='hidden';btn.addEventListener('click',shareCurrent);const spacer=actions.querySelector('span');actions.insertBefore(btn,spacer||actions.firstChild);const observer=new MutationObserver(()=>{const hasId=!!document.getElementById('perfumeId')?.value;btn.classList.toggle('hidden',!hasId||!dialog?.open);});observer.observe(dialog,{attributes:true,attributeFilter:['open']});form.addEventListener('input',()=>btn.classList.toggle('hidden',!document.getElementById('perfumeId')?.value));}
 
-initAuthGate();ensureStyles();ensureFriends();ensureShare();
+initAuthGate();ensureStyles();ensureFriends();ensureSuppliers();ensureShare();
