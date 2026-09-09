@@ -1,9 +1,11 @@
-const CACHE_NAME = 'b612-vault-production-v6-2-3';
+const CACHE_NAME = 'b612-vault-production-v6-3';
 const APP_SHELL = [
   './',
   './index.html',
   './styles.css',
+  './theme-v7.css',
   './app.js',
+  './ui-v7.js',
   './prod-core.js',
   './supabase.js',
   './manifest.webmanifest',
