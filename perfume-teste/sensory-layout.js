@@ -40,7 +40,7 @@ function buildSensoryDock(){
 
   dockContent(collection,icon.collection,'Coleção');
   dockContent(friends,icon.friends,'Amigos');
-  dockContent(addDock,icon.add,'Adicionar');
+  addDock.innerHTML=icon.add;
   dockContent(suppliers,icon.suppliers,'Lojas');
   dock.append(collection,friends,addDock,suppliers,theme);
   document.body.appendChild(dock);

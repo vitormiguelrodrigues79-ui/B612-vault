@@ -56,10 +56,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .top-actions button{background:var(--glass);border-color:var(--line);backdrop-filter:blur(18px)}
 .top-actions .primary{background:linear-gradient(135deg,#a2672d,#d39a52);border:0;color:#fff;box-shadow:0 10px 28px rgba(154,91,34,.28)}
 main{max-width:1280px;padding:28px 24px 130px}
-.hero{position:relative;overflow:hidden;grid-template-columns:minmax(0,1.2fr) minmax(360px,.8fr);min-height:300px;padding:42px;border:1px solid var(--line);border-radius:30px;background:
-  linear-gradient(112deg,var(--glass-strong),color-mix(in srgb,var(--glass) 72%,transparent)),
-  radial-gradient(circle at 80% 20%,var(--glow),transparent 45%);backdrop-filter:blur(24px) saturate(125%);box-shadow:var(--shadow)}
-.hero::after{content:"OUD";position:absolute;right:-18px;bottom:-58px;font-family:Georgia,serif;font-size:11rem;letter-spacing:-.08em;color:color-mix(in srgb,var(--accent) 8%,transparent);pointer-events:none}
+.hero{position:relative;overflow:hidden;grid-template-columns:minmax(0,1.2fr) minmax(360px,.8fr);min-height:300px;padding:42px;border:1px solid var(--line);border-radius:30px;background-image:
+  linear-gradient(90deg,rgba(255,250,239,.96) 0%,rgba(255,250,239,.78) 42%,rgba(255,250,239,.18) 72%),
+  url('sensorial-hero-day.webp');background-position:center;background-size:cover;backdrop-filter:blur(24px) saturate(125%);box-shadow:var(--shadow)}
+:root.dark .hero{background-image:
+  linear-gradient(90deg,rgba(5,9,12,.96) 0%,rgba(5,9,12,.82) 42%,rgba(5,9,12,.2) 72%),
+  url('sensorial-hero-night.webp')}
+.hero::after{display:none}
 .hero h2{font-size:clamp(2.25rem,5vw,4.5rem);max-width:780px;margin:13px 0 18px;line-height:.94;letter-spacing:-.045em}
 .hero p{max-width:620px;color:var(--muted)}
 .hero-stats{position:relative;z-index:1;grid-template-columns:1fr 1fr;gap:10px}
@@ -113,12 +116,12 @@ dialog::backdrop{background:rgba(4,6,5,.68);backdrop-filter:blur(9px)}
 .floating{display:none!important}
 .app-footer{margin-bottom:85px;border-color:var(--line)}
 @media(max-width:900px){
-  main{padding-inline:18px}.hero{grid-template-columns:1fr;padding:30px}.hero-stats{grid-template-columns:repeat(4,1fr)}.hero-stats div{padding:14px}.hero-stats strong{font-size:1.7rem}.hero::after{font-size:8rem}
+  main{padding-inline:18px}.hero{grid-template-columns:1fr;padding:30px}.hero-stats{grid-template-columns:repeat(4,1fr)}.hero-stats div{padding:14px}.hero-stats strong{font-size:1.7rem}
   .controls{grid-template-columns:1fr}.tabs{width:100%;overflow:auto}.view-switcher{justify-content:flex-start!important}.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}
 }
 @media(max-width:640px){
   .test-banner{position:relative!important}.topbar{top:0;padding:13px 16px}.topbar>div:first-child{padding-left:43px}.topbar>div:first-child::before{width:34px;height:34px}.topbar .eyebrow{display:none}.topbar h1{font-size:1.22rem}.top-actions #addBtn{display:none}.top-actions{gap:6px}.top-actions .icon-btn{width:39px;height:39px}
-  main{padding:14px 12px 150px}.hero{min-height:0;padding:22px 18px;border-radius:23px}.hero h2{font-size:2rem;line-height:1;margin:9px 0 11px}.hero p{font-size:.88rem;line-height:1.48;margin-bottom:18px}.hero-kicker{font-size:.62rem}.hero-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.hero-stats div{padding:10px 5px;text-align:center;border-radius:13px}.hero-stats strong{font-size:1.35rem}.hero-stats span{font-size:.63rem}.hero::after{font-size:5.8rem;bottom:-30px}
+  main{padding:14px 12px 150px}.hero{min-height:0;padding:22px 18px;border-radius:23px;background-position:58% center}.hero h2{font-size:2rem;line-height:1;margin:9px 0 11px}.hero p{font-size:.88rem;line-height:1.48;margin-bottom:18px}.hero-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.hero-stats div{padding:10px 5px;text-align:center;border-radius:13px}.hero-stats strong{font-size:1.35rem}.hero-stats span{font-size:.63rem}
   .controls{padding:16px 0 12px;gap:10px}.controls .tabs{display:flex!important;grid-template-columns:none!important;gap:5px!important;overflow:auto!important;width:100%!important;padding:5px!important}.controls .tabs>button{flex:0 0 auto;width:auto!important;padding:9px 12px!important;white-space:nowrap!important}.filters{grid-template-columns:1fr 1fr;gap:7px}.filters input{grid-column:1/-1}.filters input,.filters select{padding:10px 9px;font-size:.78rem;border-radius:12px}.view-switcher{gap:5px!important}.view-btn{font-size:.7rem!important;padding:7px!important}
   .grid.view-details,.grid.view-list{grid-template-columns:1fr!important}.grid.view-details .card{padding:14px}.grid.view-details .perfume-photo{width:74px;height:84px}.grid.view-details .card-head{gap:10px}.grid.view-details .score{min-width:43px;height:43px;font-size:.92rem}.grid.view-details .card h3{font-size:1.2rem}.grid.view-details .profile{min-height:0;font-size:.82rem}.grid.view-details .chips{margin:10px 0}.grid.view-details .card-foot{font-size:.82rem}
   #friendsTestPanel,#suppliersTestPanel{margin:10px 0!important;padding:19px 15px!important;border-radius:22px!important}#friendsTestPanel h3,#suppliersTestPanel h3{font-size:1.8rem}.privacy-box{padding:11px!important}.supplier-form{gap:7px!important}
