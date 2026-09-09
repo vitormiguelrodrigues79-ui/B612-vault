@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b612-vault-staging-v6-3a';
+const CACHE_NAME = 'b612-vault-staging-v6-3c';
 const APP_SHELL = [
   './',
   './index.html',
@@ -29,25 +29,13 @@ self.addEventListener('fetch', event => {
   if(event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if(url.origin !== self.location.origin) return;
-
   if(url.hostname.includes('supabase.co')) return;
 
-  if(event.request.mode === 'navigate'){
-    event.respondWith(
-      fetch(event.request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy)).catch(()=>{});
-        return response;
-      }).catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+    fetch(event.request).then(response => {
       const copy = response.clone();
       caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy)).catch(()=>{});
       return response;
-    }))
+    }).catch(() => caches.match(event.request).then(cached => cached || (event.request.mode === 'navigate' ? caches.match('./index.html') : Response.error())))
   );
 });
