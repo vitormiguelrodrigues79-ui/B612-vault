@@ -9,6 +9,40 @@ const form=document.getElementById('perfumeForm');
 const dialog=document.getElementById('perfumeDialog');
 const esc=(v='')=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":"&#39;"}[c]));
 
+function isGoogleSession(session){
+  const user=session?.user;
+  if(!user||user.is_anonymous)return false;
+  const providers=user.app_metadata?.providers||[];
+  return user.app_metadata?.provider==='google'||providers.includes('google')||user.identities?.some(identity=>identity.provider==='google');
+}
+
+function showAuthState(session,message=''){
+  const root=document.documentElement,button=document.getElementById('authGateGoogle'),status=document.getElementById('authGateStatus');
+  const ready=isGoogleSession(session);
+  root.classList.remove('auth-pending','auth-locked','auth-ready');
+  root.classList.add(ready?'auth-ready':'auth-locked');
+  if(button)button.disabled=ready;
+  if(status)status.textContent=ready?'Sessão iniciada.':message||'É necessário iniciar sessão com Google.';
+}
+
+async function initAuthGate(){
+  const button=document.getElementById('authGateGoogle');
+  button?.addEventListener('click',()=>{
+    button.disabled=true;
+    const status=document.getElementById('authGateStatus');if(status)status.textContent='A abrir o login Google…';
+    document.getElementById('googleLoginBtn')?.click();
+  });
+  document.getElementById('logoutBtn')?.addEventListener('click',()=>showAuthState(null),{capture:true});
+  try{
+    const {data,error}=await supabase.auth.getSession();if(error)throw error;
+    if(data.session&&!isGoogleSession(data.session)){
+      await supabase.auth.signOut();
+      showAuthState(null,'Esta app aceita apenas sessões iniciadas com Google.');
+    }else showAuthState(data.session);
+  }catch(err){console.warn('auth gate',err);showAuthState(null,'Não foi possível confirmar a sessão. Tenta novamente.');}
+  supabase.auth.onAuthStateChange((_event,session)=>showAuthState(session));
+}
+
 function ensureStyles(){
   if(document.getElementById('friendsTestStyles')) return;
   const s=document.createElement('style');
@@ -155,4 +189,4 @@ function shareText(p){const title=[p.brand,p.name].filter(Boolean).join(' — ')
 async function shareCurrent(){const p=currentPerfume();if(!p.name){alert('Abre primeiro uma ficha de perfume para partilhar.');return;}const text=shareText(p);const url=location.origin+location.pathname.replace('/perfume-teste/','/perfume/');try{if(navigator.share){await navigator.share({title:`${p.brand} ${p.name}`.trim(),text,url});}else{await navigator.clipboard.writeText(`${text}\n${url}`);alert('Ficha copiada. Já podes colar no WhatsApp ou email.');}}catch(err){if(err?.name!=='AbortError')console.warn('share',err);}}
 function ensureShare(){if(!form||document.getElementById('sharePerfumeBtn'))return;const actions=form.querySelector('.dialog-actions');if(!actions)return;const btn=document.createElement('button');btn.type='button';btn.id='sharePerfumeBtn';btn.textContent='Partilhar';btn.className='hidden';btn.addEventListener('click',shareCurrent);const spacer=actions.querySelector('span');actions.insertBefore(btn,spacer||actions.firstChild);const observer=new MutationObserver(()=>{const hasId=!!document.getElementById('perfumeId')?.value;btn.classList.toggle('hidden',!hasId||!dialog?.open);});observer.observe(dialog,{attributes:true,attributeFilter:['open']});form.addEventListener('input',()=>btn.classList.toggle('hidden',!document.getElementById('perfumeId')?.value));}
 
-ensureStyles();ensureFriends();ensureShare();
+initAuthGate();ensureStyles();ensureFriends();ensureShare();
