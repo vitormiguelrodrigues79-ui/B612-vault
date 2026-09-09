@@ -1,5 +1,6 @@
 (()=>{
   const $=id=>document.getElementById(id);
+  const DISPLAY_VERSION='B612-Vault v6.3 STAGING';
   const nav=document.createElement('nav');
   nav.className='b612-bottom-nav';
   nav.innerHTML=`
@@ -23,6 +24,15 @@
     </div>
   </article>`;
   document.body.appendChild(detail);
+
+  const accountPanel=document.querySelector('#accountView .panel');
+  if(accountPanel && !document.getElementById('accountVersion')){
+    const versionRow=document.createElement('div');
+    versionRow.className='account-line';
+    versionRow.innerHTML=`<span>Versão</span><strong id="accountVersion">${DISPLAY_VERSION}</strong>`;
+    const syncButton=document.getElementById('accountSyncBtn');
+    accountPanel.insertBefore(versionRow,syncButton||null);
+  }
 
   let editAction=null;
   const clean=t=>(t||'').trim();
@@ -60,9 +70,7 @@
       $('b612DetailTitle').textContent=title;
       const parts=spec.split('·').map(s=>s.trim()).filter(Boolean);
       $('b612DetailSpecs').innerHTML=parts.map(p=>`<span>${p}</span>`).join('');
-      $('b612DetailTable').innerHTML=[
-        row('Marca',brand),row('Modelo',title),row('Referência / ficha',spec),row(costLabel||'Custo',cost)
-      ].join('');
+      $('b612DetailTable').innerHTML=[row('Marca',brand),row('Modelo',title),row('Referência / ficha',spec),row(costLabel||'Custo',cost)].join('');
       detail.classList.remove('hidden');
     };
   }
@@ -77,5 +85,5 @@
   detail.addEventListener('click',e=>{if(e.target===detail)detail.classList.add('hidden')});
 
   setActive('home');
-  const version=$('versionInfo'); if(version) version.textContent='B612-Vault v6.3 STAGING';
+  const version=$('versionInfo'); if(version) version.textContent=DISPLAY_VERSION;
 })();
