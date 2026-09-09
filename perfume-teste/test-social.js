@@ -23,12 +23,13 @@ function ensureStyles(){
     .friends-list{display:grid;gap:10px;margin-top:14px}.friend-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
     .friend-row small{display:block;color:var(--muted);margin-top:3px}.friend-actions{display:flex;gap:7px;flex-wrap:wrap}.friend-actions button{padding:7px 10px}
     #friendMsg{min-height:20px;font-size:.82rem;color:var(--muted)}
-    .privacy-box{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;margin:14px 0;background:color-mix(in srgb,var(--panel) 94%,var(--ink) 6%)}
-    .privacy-box label{font-size:.86rem;font-weight:700}.privacy-box select{min-width:150px}
-    #friendFavoritesView{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}.friend-fav-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.friend-fav-head h4{margin:0}
+    .privacy-list{display:grid;gap:8px;margin:14px 0}.privacy-box{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--panel) 94%,var(--ink) 6%)}
+    .privacy-copy{display:grid;gap:3px}.privacy-copy strong{font-size:.86rem}.privacy-copy small{color:var(--muted)}.privacy-toggle{width:20px;height:20px;accent-color:var(--ink);flex:0 0 auto}
+    #friendSharedView{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}.friend-fav-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.friend-fav-head h4{margin:0}
+    .share-category-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 13px}.share-category-tabs button{padding:7px 10px}.share-category-tabs button.active{background:var(--ink);color:var(--bg)}
     .friend-fav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.friend-fav-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
     .friend-fav-card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#eee}.friend-fav-card .body{padding:12px}.friend-fav-card h5{margin:0 0 3px;font-size:.95rem}.friend-fav-card p{margin:4px 0 0!important;font-size:.78rem}.friend-fav-card .score{display:inline-block;margin-top:8px;font-weight:800;font-size:.78rem}
-    @media(max-width:560px){.friend-add{grid-template-columns:1fr}.friend-row{align-items:flex-start;flex-direction:column}.friend-actions{width:100%}.friend-actions button{flex:1}.privacy-box{align-items:flex-start;flex-direction:column}.privacy-box select{width:100%}}
+    @media(max-width:560px){.friend-add{grid-template-columns:1fr}.friend-row{align-items:flex-start;flex-direction:column}.friend-actions{width:100%}.friend-actions button{flex:1}}
   `;
   document.head.appendChild(s);
 }
@@ -42,12 +43,16 @@ function ensureFriends(){
   panel.id='friendsTestPanel';panel.className='hidden';
   panel.innerHTML=`
     <h3>Amigos</h3>
-    <p>Adiciona alguém através do email da conta Google que usa no Oud d’Haenir e vê os favoritos dos amigos que escolherem partilhá-los.</p>
-    <div class="privacy-box"><label for="favoritesVisibility">Os meus favoritos</label><select id="favoritesVisibility"><option value="friends">Visíveis para amigos</option><option value="private">Privados</option></select></div>
+    <p>Adiciona alguém através do email da conta Google que usa no Oud d’Haenir e vê apenas as categorias que cada amigo decidiu partilhar.</p>
+    <div class="privacy-list" aria-label="Partilhas com amigos">
+      <label class="privacy-box"><span class="privacy-copy"><strong>Favoritos</strong><small>Partilhar os perfumes marcados como favoritos</small></span><input class="privacy-toggle" type="checkbox" data-sharing-category="favorites"></label>
+      <label class="privacy-box"><span class="privacy-copy"><strong>Tenho</strong><small>Partilhar os frascos da tua coleção</small></span><input class="privacy-toggle" type="checkbox" data-sharing-category="collection"></label>
+      <label class="privacy-box"><span class="privacy-copy"><strong>Decants</strong><small>Partilhar os teus decants</small></span><input class="privacy-toggle" type="checkbox" data-sharing-category="decants"></label>
+    </div>
     <div class="friend-add"><input id="friendEmail" type="email" autocomplete="email" placeholder="email@gmail.com"><button id="addFriendBtn" type="button" class="primary">Adicionar</button></div>
     <div id="friendMsg"></div>
     <div id="friendsList" class="friends-list"></div>
-    <div id="friendFavoritesView" class="hidden"><div class="friend-fav-head"><h4 id="friendFavoritesTitle">Favoritos</h4><button id="closeFriendFavorites" type="button">Fechar</button></div><div id="friendFavoritesGrid" class="friend-fav-grid"></div></div>`;
+    <div id="friendSharedView" class="hidden"><div class="friend-fav-head"><h4 id="friendSharedTitle">Partilhas</h4><button id="closeFriendShared" type="button">Fechar</button></div><div class="share-category-tabs"><button type="button" data-share-view="favorites">Favoritos</button><button type="button" data-share-view="collection">Tenho</button><button type="button" data-share-view="decants">Decants</button></div><div id="friendSharedGrid" class="friend-fav-grid"></div></div>`;
   grid?.parentNode?.insertBefore(panel,grid);
 
   btn.addEventListener('click',async()=>{
@@ -57,21 +62,27 @@ function ensureFriends(){
   document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{btn.classList.remove('active');panel.classList.add('hidden');grid?.classList.remove('hidden');}));
   document.getElementById('addFriendBtn')?.addEventListener('click',addFriendByEmail);
   document.getElementById('friendEmail')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addFriendByEmail();}});
-  document.getElementById('favoritesVisibility')?.addEventListener('change',savePrivacy);
-  document.getElementById('closeFriendFavorites')?.addEventListener('click',()=>document.getElementById('friendFavoritesView')?.classList.add('hidden'));
+  document.querySelectorAll('[data-sharing-category]').forEach(input=>input.addEventListener('change',savePrivacy));
+  document.querySelectorAll('[data-share-view]').forEach(button=>button.addEventListener('click',()=>loadFriendShares(friendShareState.userId,friendShareState.name,button.dataset.shareView)));
+  document.getElementById('closeFriendShared')?.addEventListener('click',()=>document.getElementById('friendSharedView')?.classList.add('hidden'));
 }
 
 async function sessionUser(){const {data}=await supabase.auth.getSession();return data.session?.user||null;}
 function setFriendMsg(text){const el=document.getElementById('friendMsg');if(el)el.textContent=text||'';}
 
 async function loadPrivacy(){
-  const select=document.getElementById('favoritesVisibility');if(!select)return;
-  try{const {data,error}=await supabase.rpc('my_favorites_visibility');if(error)throw error;select.value=data||'friends';}catch(err){console.warn('privacy load',err);}
+  const inputs=[...document.querySelectorAll('[data-sharing-category]')];if(!inputs.length)return;
+  try{
+    const {data,error}=await supabase.rpc('my_perfume_sharing');if(error)throw error;
+    const settings=Array.isArray(data)?data[0]:data;if(!settings)return;
+    inputs.forEach(input=>{input.checked=!!settings[input.dataset.sharingCategory];});
+  }catch(err){console.warn('privacy load',err);setFriendMsg('Não foi possível carregar as definições de partilha.');}
 }
 async function savePrivacy(e){
-  const value=e.target.value;setFriendMsg('A guardar privacidade…');
-  try{const {error}=await supabase.rpc('set_favorites_visibility',{new_visibility:value});if(error)throw error;setFriendMsg(value==='friends'?'Os teus favoritos estão visíveis para amigos.':'Os teus favoritos estão privados.');}
-  catch(err){console.warn('privacy save',err);setFriendMsg('Não foi possível guardar a privacidade.');}
+  const input=e.currentTarget,category=input.dataset.sharingCategory,enabled=input.checked;input.disabled=true;setFriendMsg('A guardar privacidade…');
+  try{const {error}=await supabase.rpc('set_perfume_sharing',{target_category:category,new_enabled:enabled});if(error)throw error;setFriendMsg(`${sharingLabels[category]}: partilha ${enabled?'ligada':'desligada'}.`);}
+  catch(err){input.checked=!enabled;console.warn('privacy save',err);setFriendMsg('Não foi possível guardar a privacidade.');}
+  finally{input.disabled=false;}
 }
 
 async function addFriendByEmail(){
@@ -99,24 +110,31 @@ async function loadFriends(){
     host.innerHTML=rows.map(r=>{
       const incoming=r.status==='pending'&&r.direction==='incoming',outgoing=r.status==='pending'&&r.direction==='outgoing',accepted=r.status==='accepted';
       const state=accepted?'Amigo':incoming?'Pedido recebido':outgoing?'Pedido enviado':'Recusado';
-      const actions=incoming?`<div class="friend-actions"><button type="button" data-accept="${r.friendship_id}">Aceitar</button><button type="button" data-reject="${r.friendship_id}">Recusar</button></div>`:accepted?`<div class="friend-actions"><button type="button" data-favorites="${r.other_user_id}" data-name="${esc(r.display_name||'Utilizador')}">Ver favoritos</button><button type="button" data-remove="${r.friendship_id}">Remover</button></div>`:'';
+      const actions=incoming?`<div class="friend-actions"><button type="button" data-accept="${r.friendship_id}">Aceitar</button><button type="button" data-reject="${r.friendship_id}">Recusar</button></div>`:accepted?`<div class="friend-actions"><button type="button" data-shared="${r.other_user_id}" data-name="${esc(r.display_name||'Utilizador')}">Ver partilhas</button><button type="button" data-remove="${r.friendship_id}">Remover</button></div>`:'';
       return `<div class="friend-row"><div><strong>${esc(r.display_name||'Utilizador')}</strong><small>${esc(state)}</small></div>${actions}</div>`;
     }).join('');
     host.querySelectorAll('[data-accept]').forEach(b=>b.addEventListener('click',()=>respondFriend(b.dataset.accept,'accepted')));
     host.querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',()=>respondFriend(b.dataset.reject,'rejected')));
     host.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>removeFriend(b.dataset.remove)));
-    host.querySelectorAll('[data-favorites]').forEach(b=>b.addEventListener('click',()=>loadFriendFavorites(b.dataset.favorites,b.dataset.name)));
+    host.querySelectorAll('[data-shared]').forEach(b=>b.addEventListener('click',()=>loadFriendShares(b.dataset.shared,b.dataset.name,'favorites')));
   }catch(err){console.warn('friends load',err);host.innerHTML='<small>Não foi possível carregar os amigos.</small>';}
 }
 
-async function loadFriendFavorites(userId,name){
-  const view=document.getElementById('friendFavoritesView'),host=document.getElementById('friendFavoritesGrid'),title=document.getElementById('friendFavoritesTitle');
-  if(!view||!host)return;view.classList.remove('hidden');title.textContent=`Favoritos de ${name||'amigo'}`;host.innerHTML='<small>A carregar favoritos…</small>';view.scrollIntoView({behavior:'smooth',block:'nearest'});
+const sharingLabels={favorites:'Favoritos',collection:'Tenho',decants:'Decants'};
+const friendShareState={userId:null,name:'',category:'favorites'};
+async function loadFriendShares(userId,name,category='favorites'){
+  const view=document.getElementById('friendSharedView'),host=document.getElementById('friendSharedGrid'),title=document.getElementById('friendSharedTitle');
+  if(!view||!host||!userId)return;
+  friendShareState.userId=userId;friendShareState.name=name||'amigo';friendShareState.category=category;
+  view.classList.remove('hidden');title.textContent=`Partilhas de ${friendShareState.name}`;
+  document.querySelectorAll('[data-share-view]').forEach(button=>button.classList.toggle('active',button.dataset.shareView===category));
+  host.innerHTML=`<small>A carregar ${sharingLabels[category].toLowerCase()}…</small>`;view.scrollIntoView({behavior:'smooth',block:'nearest'});
   try{
-    const {data,error}=await supabase.rpc('friend_favorites',{target_user_id:userId});if(error)throw error;const rows=Array.isArray(data)?data:[];
-    if(!rows.length){host.innerHTML='<small>Este amigo não tem favoritos públicos neste momento.</small>';return;}
+    const {data,error}=await supabase.rpc('friend_shared_perfumes',{target_user_id:userId,target_category:category});if(error)throw error;const rows=Array.isArray(data)?data:[];
+    if(friendShareState.userId!==userId||friendShareState.category!==category)return;
+    if(!rows.length){host.innerHTML=`<small>Este amigo não está a partilhar ${sharingLabels[category].toLowerCase()} ou ainda não tem itens nesta categoria.</small>`;return;}
     host.innerHTML=rows.map(p=>`<article class="friend-fav-card">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`:''}<div class="body"><h5>${esc(p.brand||'')} ${esc(p.name||'')}</h5>${p.concentration?`<p>${esc(p.concentration)}</p>`:''}${p.profile?`<p>${esc(p.profile)}</p>`:''}${p.inspiration_name?`<p>Similar: ${esc(p.inspiration_name)}${p.inspiration_house?` · ${esc(p.inspiration_house)}`:''}</p>`:''}${p.overall_score!==null&&p.overall_score!==undefined?`<span class="score">★ ${Number(p.overall_score).toFixed(1)}/10</span>`:''}</div></article>`).join('');
-  }catch(err){console.warn('friend favorites',err);host.innerHTML='<small>Não foi possível carregar os favoritos deste amigo.</small>';}
+  }catch(err){console.warn('friend shares',err);host.innerHTML='<small>Não foi possível carregar as partilhas deste amigo.</small>';}
 }
 
 async function respondFriend(id,status){
@@ -125,7 +143,7 @@ async function respondFriend(id,status){
   catch(err){console.warn('friend respond',err);setFriendMsg('Não foi possível atualizar o pedido.');}
 }
 async function removeFriend(id){
-  try{const {error}=await supabase.from('friendships').delete().eq('id',id);if(error)throw error;setFriendMsg('Amizade removida.');document.getElementById('friendFavoritesView')?.classList.add('hidden');await loadFriends();}
+  try{const {error}=await supabase.from('friendships').delete().eq('id',id);if(error)throw error;setFriendMsg('Amizade removida.');document.getElementById('friendSharedView')?.classList.add('hidden');await loadFriends();}
   catch(err){console.warn('friend remove',err);setFriendMsg('Não foi possível remover a amizade.');}
 }
 
