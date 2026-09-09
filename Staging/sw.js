@@ -1,9 +1,11 @@
-const CACHE_NAME = 'b612-vault-staging-v6-2';
+const CACHE_NAME = 'b612-vault-staging-v6-3';
 const APP_SHELL = [
   './',
   './index.html',
   './styles.css',
+  './theme-v7.css',
   './app.js',
+  './ui-v7.js',
   './supabase.js',
   './manifest.webmanifest',
   '../app-symbol.jpg',
@@ -28,7 +30,6 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if(url.origin !== self.location.origin) return;
 
-  // Do not cache Supabase/API data. The app continues to read live cloud data.
   if(url.hostname.includes('supabase.co')) return;
 
   if(event.request.mode === 'navigate'){
