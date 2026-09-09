@@ -1,4 +1,4 @@
-const CACHE='oud-haenir-v1.17.0';
+const CACHE='oud-haenir-v1.18.0';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE))});
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
   for(const k of await caches.keys()){
